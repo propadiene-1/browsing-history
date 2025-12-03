@@ -324,8 +324,6 @@ def render_data():
 def main():
     st.set_page_config(page_title="Chrome History Explorer", layout="wide")
 
-    st.sidebar.header("Menu")
-
     render_instructions()
 
     render_data()

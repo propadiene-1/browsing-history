@@ -3,16 +3,19 @@ import streamlit as st
 st.title("ℹ️ About Chrome History Explorer")
 
 st.markdown("""
-This app lets you explore your **Google Chrome browsing history** locally or via Streamlit Community Cloud.
+This is an app for you to view your browsing history!
 
-### What it does
-- Reads your local Chrome `History` SQLite database.
-- Shows a **raw table** of entries.
-- Aggregates by **domain** to show:
-  - A bar chart of visits by domain.
-  - A pie chart of how many domains you've visited less than a chosen threshold.
+### what does it do?
+- Read your local Google Chrome history.
+- Show you data:
+  - a raw table of your history.
+  - a bar chart of sites, by # of visits.
+  - a pie chart showing how many sites are **less frequently visited** (you select the frequency threshold!)
+  - a table of those less frequently visited sites.
+
+The goal is to show you how many sites you actually don't visit often!
 
 ### Privacy
-- Your uploaded file is processed only in memory for this session.
-- It is not stored permanently or sent anywhere else (beyond the Streamlit app server you're using).
+- We do **NOT** store any of your data!
+- Your file is only in the current session's memory. It is not stored or sent anywhere else.
 """)
