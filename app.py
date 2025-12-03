@@ -264,21 +264,21 @@ def render_data():
 
     #adjust # of sites
     top_n = 20
-    top_n = st.slider("Top n domains: ", 5, 100, top_n, 5)
+    top_n = st.slider("Number of domains", 5, 100, top_n, 5)
 
     #render bar chart
     render_domain_bar_chart(domain_counts, top_n)
 
     #pie chart
 
-    st.markdown("##### Visit Frequency Threshold (Pie Chart)")
+    st.markdown("#### Visit Frequency Distribution (Pie Chart)")
 
     col1, col2 = st.columns([2, 1])
 
     #adjust threshold
     threshold = 10
     with col2:
-        threshold = st.number_input("Visit threshold", 1, 1000, 10, 1)
+        threshold = st.number_input("Adjust visit threshold", 1, 1000, 10, 1)
 
     threshold_df = compute_visit_threshold_counts(domain_counts, threshold)
 
