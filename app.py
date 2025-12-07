@@ -34,16 +34,20 @@ def load_chrome_history_db(db_path):
     return df
 
 #convert chrome timestamps to human-readable date time
-#Chrome uses microseconds since 1601-01-01 UTC
+#chrome uses microseconds since 1601-01-01 UTC
 def chrome_time_to_datetime(chrome_time):
     if pd.isna(chrome_time):
         return None
 
     try:
         epoch_start = datetime(1601, 1, 1)
-        return epoch_start + timedelta(microseconds=int(chrome_time))
+        total_seconds = round(int(chrome_time)/1_000_000) #convert to seconds
+        return epoch_start + timedelta(seconds=total_seconds) #seconds since UTC 1601-01-01
     except:
         return None
+
+def timeframe(df, col):
+    return df[col].min().strftime("%m/%d/%Y  %H:%M:%S %p"), df[col].max().strftime("%m/%d/%y  %H:%M:%S %p")
 
 #add human-readable domain column
 def add_domain(df):
@@ -235,11 +239,13 @@ def render_data():
     st.subheader("Step 2: View your Raw History Data")
    
     #overall stats
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns([0.3,0.3,0.4])
     with col1:
         st.write(f"**Total history entries:**  {len(df):,}")
     with col2:
         st.write(f"**Unique domains:** {df['domain'].nunique():,}")
+    with col3:
+        st.write(f"**Timeframe:** {timeframe(df, 'last_visit')[0]}  to  {timeframe(df, 'last_visit')[1]}")
 
     st.info("You can sort columns by clicking headers.")
 
@@ -313,7 +319,7 @@ def render_data():
     st.write(f"**Total:** {len(domains_below)} domains")
 
     if len(domains_below) > 0:
-        st.dataframe(domains_below, use_container_width=True)
+        st.dataframe(domains_below, use_container_width=True, hide_index=True)
     else:
         st.write("No domains fall below this threshold.")
 
