@@ -5,13 +5,15 @@ st.markdown("### About this site (browsing history visualizer)")
 st.markdown("""
 This is an app for you to view your browsing history!
 
-#### what does it do?
+#### What does it do?
+This app will:
 - Read your (local) Google Chrome history.
 - Show you data:
-  - **Raw table** of your history.
-  - **Bar chart** of sites, by # of visits.
-  - **Pie chart** showing how many sites are **less frequently visited** (you select the frequency threshold!)
-  - **List** of those less frequently visited sites.
+  - **Raw browsing history** organized in a table of browsing sessions.
+  - **Site visit frequency** in a sorted bar chart.
+  - **Proportion of less-visited sites** in a pie chart with an adjustable visit threshold.
+  - **List** of less frequently visited domains (based on the same threshold).
+  - **Recent search queries** in a list of dropdowns, each revealing your browsing behavior after the search.
 
 The goal is to see how many sites you actually don't visit often!
 

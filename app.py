@@ -338,14 +338,12 @@ def render_data():
 
     #RENDER PIE CHART
     st.markdown("#### Visit Frequency Distribution (Pie Chart)")
-    col1, col2 = st.columns([2, 1])
+    col1, col2 = st.columns([1, 0.8])
     
     threshold = 10 #domain visit threshold input adjuster
-    with col2:
-        threshold = st.number_input("Adjust visit threshold", 1, 1000, 10, 1)
-    threshold_df = compute_visit_threshold_counts(session_counts, threshold) #just stores below count, above count
-
     with col1:
+        threshold = st.number_input("Adjust visit threshold", 1, 1000, 10, 1, width=200)
+        threshold_df = compute_visit_threshold_counts(session_counts, threshold) #just stores below count, above count
         render_visit_threshold_pie_chart(threshold_df) #render with threshold
 
     #RENDER TOTAL PERCENT (BELOW AND ABOVE THRESHOLD)
@@ -364,25 +362,23 @@ def render_data():
 
             ### You visited :blue[{percent_below}%] of the sites in your browser history less than :blue[{threshold}] times.
             """)
+        
+        domains_below = session_counts[session_counts['total_visits'] < threshold] #mask df with only rows < threshold
+
+        #DISPLAY LIST (less-visited sites)
+        if len(domains_below) > 0:
+            st.dataframe(domains_below, width='stretch', hide_index=True)
+        else:
+            st.write("No domains fall below this threshold.")
+        
+        st.write(f"**Total:** {len(domains_below)} domains")
+        
 
     #STEP 4 VIEW YOUR SEARCH BEHAVIOR
     st.subheader("Step 4: View Your Search Behavior")
 
     render_query_table(raw_data)
     
-    #STEP 5 LIST OF LESS VISITED SITES
-    st.subheader("Step 5: Review Less Frequently Visited Sites")
-    domains_below = session_counts[session_counts['total_visits'] < threshold] #mask df with only rows < threshold
-
-    st.info("You can sort columns by clicking headers.")
-    st.markdown(f"##### Websites visited fewer than {threshold} times")
-    st.write(f"**Total:** {len(domains_below)} domains")
-
-    if len(domains_below) > 0:
-        st.dataframe(domains_below, width='stretch', hide_index=True)
-    else:
-        st.write("No domains fall below this threshold.")
-
 # -------------------------
 # Launch the app
 # -------------------------
