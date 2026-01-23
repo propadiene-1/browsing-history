@@ -68,12 +68,6 @@ def add_domain(df):
     df["domain"] = df["url"].apply(extract_domain)
     return df
 
-#add a row with visit length
-#def add_visit_length(df):
-#    df = df.copy()
-#    df = df.sort_values('visit_time') #sort by earliest
-#   
-
 #build df based on sessions instead of visits
 def split_sessions(df, session_length=30):
     df = df.sort_values(['domain', 'visit_time']) #group by domain and chronological sort
@@ -119,7 +113,7 @@ def split_sessions(df, session_length=30):
 #add column w/ length of session
 def add_session_length(df):
     df = df.copy()
-    df['session_length'] = df['session_start'] - df['session_end']
+    df['session_length'] = df['session_end'] - df['session_start']
     return df
 
 # ------------------------------------
@@ -205,8 +199,31 @@ def render_visit_threshold_pie_chart(threshold_df):
     )
     st.altair_chart(chart, width='stretch')
 
-#def visualize_queries(df):
+# ------------------------
+# VISUALIZE SEARCH RESULTS
+# ------------------------
 
+#shows 5 searches after a query
+def render_query_table(raw_data, limit=40):
+    raw_data = raw_data.sort_values(by='visit_time').reset_index(drop=True)
+    query_indices = raw_data[raw_data['title'].str.contains('Google Search', na=False)].index #mask with google search
+
+    if len(query_indices) == 0:
+        st.info("No google searches were found in your history.")
+        return
+    st.info(f"Showing {min(limit, len(query_indices))} of your most recent Google searches. Click to see your browsing behavior after the search!")
+
+    #only go up to the last [limit] searches
+    recent_searches = query_indices[::-1][:limit]
+
+    for search_index in recent_searches:
+        row = raw_data.iloc[search_index] #look up query in full data table
+        search_title = row['title'].replace('- Google Search', '')
+        search_results = raw_data.iloc[search_index+1 : search_index+6][['visit_time', 'domain', 'url', 'title']]
+        
+        with st.expander(f"{search_title} | {row['visit_time']}"): #display in streamlit
+            st.dataframe(search_results, hide_index=True, width='stretch')
+    return
 
 # ------------------------
 # Render user instructions
@@ -348,8 +365,13 @@ def render_data():
             ### You visited :blue[{percent_below}%] of the sites in your browser history less than :blue[{threshold}] times.
             """)
 
-    #STEP 4 LIST OF LESS VISITED SITES
-    st.subheader("Step 4: Review Less Frequently Visited Sites")
+    #STEP 4 VIEW YOUR SEARCH BEHAVIOR
+    st.subheader("Step 4: View Your Search Behavior")
+
+    render_query_table(raw_data)
+    
+    #STEP 5 LIST OF LESS VISITED SITES
+    st.subheader("Step 5: Review Less Frequently Visited Sites")
     domains_below = session_counts[session_counts['total_visits'] < threshold] #mask df with only rows < threshold
 
     st.info("You can sort columns by clicking headers.")
