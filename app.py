@@ -22,13 +22,13 @@ def load_chrome_history_db(db_path):
     conn = sqlite3.connect(db_path)
     query = """ 
         SELECT
-            url,
-            title,
-            visit_count,
-            typed_count,
-            last_visit_time
+            urls.url,
+            urls.title,
+            visits.visit_time
         FROM urls
-    """ #which columns to get from db
+        JOIN visits ON urls.id = visits.url
+        ORDER BY visits.visit_time
+    """ #join urls by visit based on id and sort
     df = pd.read_sql_query(query, conn)
     conn.close()
     return df
@@ -55,13 +55,71 @@ def add_domain(df):
     def extract_domain(url):
         if not isinstance(url, str):
             return ""
+        
+        if url.startswith("file://"): #user saved files
+            return "Local Files"
+
         parsed = urlparse(url)
         dom = parsed.netloc.split(":")[0]
         if dom.startswith("www."):
             dom = dom[4:]
-        return dom
+        return dom if dom else "Unknown"
 
     df["domain"] = df["url"].apply(extract_domain)
+    return df
+
+#add a row with visit length
+#def add_visit_length(df):
+#    df = df.copy()
+#    df = df.sort_values('visit_time') #sort by earliest
+#   
+
+#build df based on sessions instead of visits
+def split_sessions(df, session_length=30):
+    df = df.sort_values(['domain', 'visit_time']) #group by domain and chronological sort
+
+    current_sessions = {} #current tracked sessions. key: domain; value: {all the info}
+    all_sessions = [] #all completed sessions
+
+    #iterate thru all visits
+    for index, row in df.iterrows():
+        curr_domain = row['domain']
+        curr_visit_time = row['visit_time']
+        
+        if curr_domain in current_sessions: #not a new domain
+            curr_session = current_sessions[curr_domain] #get session info
+            #if it's been over 30m, start new session
+            if (curr_visit_time - curr_session['session_start']) > timedelta(minutes=session_length):
+                all_sessions.append(curr_session) #save previous session
+                current_sessions[curr_domain] = {
+                    'domain': curr_domain,
+                    'title': row['title'] if pd.notna(row['title']) and row['title'].strip() else 'Untitled',
+                    'url': row['url'],
+                    'session_start': curr_visit_time, #new session starts at curr time
+                    'session_end': curr_visit_time,
+                    'visit_count': 1
+                }
+            else: #continue extending current session
+                curr_session['session_end'] = curr_visit_time
+                curr_session['visit_count'] += 1
+                if (curr_session['title'] == 'Untitled' or not curr_session['title']) and pd.notna(row['title']) and row['title'].strip():
+                    curr_session['title'] = row['title']  #just update title to latest visit
+        else: #new domain (not tracking yet)
+            current_sessions[curr_domain] = {#add to tracked sessions
+                'domain': curr_domain,
+                'title': row['title'] if pd.notna(row['title']) and row['title'].strip() else 'Untitled',
+                'url': row['url'],
+                'session_start': curr_visit_time, #new session starts at curr time
+                'session_end': curr_visit_time,
+                'visit_count': 1
+            }
+    all_sessions.extend(current_sessions.values()) #add all leftover sessions
+    return pd.DataFrame(all_sessions)       
+
+#add column w/ length of session
+def add_session_length(df):
+    df = df.copy()
+    df['session_length'] = df['session_start'] - df['session_end']
     return df
 
 # ------------------------------------
@@ -95,8 +153,7 @@ def compute_visit_threshold_counts(session_counts, threshold=10):
 
 #raw table of results (all visits/browsing sessions for all links)
 def render_raw_table(df):
-    #can display all columns from both session and non-session version
-    columns_order = ["url", "domain", "title", "session_start", "session_end", "visit_count", "last_visit", "typed_count"]
+    columns_order = ["domain", "title", "url", "session_length", "session_start", "session_end", "visit_count"]
     display_cols = [c for c in columns_order if c in df.columns]
 
     if display_cols:
@@ -148,6 +205,8 @@ def render_visit_threshold_pie_chart(threshold_df):
     )
     st.altair_chart(chart, width='stretch')
 
+#def visualize_queries(df):
+
 
 # ------------------------
 # Render user instructions
@@ -192,48 +251,6 @@ def render_instructions():
     
     st.markdown("""##### Upload your file below!""")
 
-#build df based on sessions instead of visits
-def split_sessions(df, session_length=30):
-    df = df.sort_values(['domain', 'last_visit']) #group by domain and chronological sort
-
-    current_sessions = {} #current tracked sessions. key: domain; value: {all the info}
-    all_sessions = [] #all completed sessions
-
-    #iterate thru all visits
-    for index, row in df.iterrows():
-        curr_domain = row['domain']
-        curr_visit_time = row['last_visit']
-        
-        if curr_domain in current_sessions: #not a new domain
-            curr_session = current_sessions[curr_domain] #get session info
-            #if it's been over 30m, start new session
-            if (curr_visit_time - curr_session['session_start']) > timedelta(minutes=session_length):
-                all_sessions.append(curr_session) #save previous session
-                current_sessions[curr_domain] = {
-                    'domain': curr_domain,
-                    'title': row['title'],
-                    'url': row['url'],
-                    'session_start': curr_visit_time, #new session starts at curr time
-                    'session_end': curr_visit_time,
-                    'visit_count': 1
-                }
-            else: #continue extending current session
-                curr_session['session_end'] = curr_visit_time
-                curr_session['visit_count'] += 1
-                if pd.notna(row['title']) and row['title'].strip():
-                    curr_session['title'] = row['title']  #just update title to latest visit
-        else: #new domain (not tracking yet)
-            current_sessions[curr_domain] = {#add to tracked sessions
-                'domain': curr_domain,
-                'title': row['title'],
-                'url': row['url'],
-                'session_start': curr_visit_time, #new session starts at curr time
-                'session_end': curr_visit_time,
-                'visit_count': 1
-            }
-    all_sessions.extend(current_sessions.values()) #add all leftover sessions
-    return pd.DataFrame(all_sessions)       
-
 # --------------------------
 # Render data visualizaitons
 # --------------------------
@@ -255,10 +272,12 @@ def render_data():
         temp_path = save_uploaded_file_to_temp(uploaded_file)
         df = load_chrome_history_db(temp_path)
         df = add_domain(df)
-        #change last_visit_time to human-readable date times
-        df["last_visit"] = df["last_visit_time"].apply(chrome_time_to_datetime)
+        #change visit_time to human-readable date times
+        df["visit_time"] = df["visit_time"].apply(chrome_time_to_datetime)
+        raw_data = df #save raw visit data
         #split into 30-min sessions
         df = split_sessions(df)
+        df = add_session_length(df)
     
     except Exception as e:
         st.error(f"Unable to read the file. Error: {e}")
