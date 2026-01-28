@@ -20,3 +20,9 @@ This app analyzes your Google Chrome browsing history. It does not save any of y
 4. **Follow instructions in the app for analysis**
 
     ![Alt text](./static/screenshot.png)
+
+### Authors
+
+Made by Aileen Liang, advised by Eni Mustafaraj.
+
+This project was greatly inspired by [the Cookies Project](https://cookiesproject.streamlit.app/) made by Jessica, Nina, Crystal, and Dianna from Wellesley Cred Lab.

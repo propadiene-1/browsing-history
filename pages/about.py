@@ -8,7 +8,7 @@ st.markdown("""
 
 This is an app for you to view your browsing history!
 
-This site was heavily inspired by [the Cookies Project](https://cookiesproject.streamlit.app/) made by Jessica, Nina, Crystal, and Dianna from Wellesley Cred Lab. Go check it out!
+This site was greatly inspired by [the Cookies Project](https://cookiesproject.streamlit.app/) made by Jessica, Nina, Crystal, and Dianna from Wellesley Cred Lab. Go check it out!
 
 #### What does it do?
 
