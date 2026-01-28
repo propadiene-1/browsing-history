@@ -115,7 +115,7 @@ def render_data():
     #RENDER BAR CHART
     col1, col2 = st.columns([4, 1])
     with col1:
-        st.markdown("#### Domains by Frequency of Visits (Bar Chart)")
+        st.markdown("#### Most Frequently Visited Domains")
     with col2: 
         st.download_button(     #download button (csv)
             label="Download top 1000 domains (CSV)",
@@ -134,7 +134,7 @@ def render_data():
     render_domain_bar_chart(session_counts, top_n)
 
     #RENDER PIE CHART
-    st.markdown("#### Visit Frequency Distribution (Pie Chart)")
+    st.markdown("#### Percentage of Highly-Visited Domains")
     col1, col2 = st.columns([1, 0.8])
     
     threshold = 10 #domain visit threshold input adjuster
@@ -179,7 +179,8 @@ def render_data():
 # -------------------------
 
 def main():
-    st.set_page_config(page_title="Chrome History Explorer", layout="wide")
+    st.markdown("## **Explore your Data**")
+    st.set_page_config(page_title="Explore your Data", layout="wide")
     render_instructions() #STEP 1
     render_data() #STEP 2-4
 

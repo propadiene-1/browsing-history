@@ -1,13 +1,15 @@
 import streamlit as st
 from app_functions import *
 
+st.set_page_config(page_title="Share your Data", layout="wide")
+
+st.markdown("## **Share your Data**")
 st.markdown("""
-### Share your Data (OPTIONAL)
-This part is completely optional. If you found the app helpful, you have the option to share your history with us and improve our research.
+This part is completely OPTIONAL. If you found the app helpful, you have the option to share your history with us and improve our research.
 """)
 
 st.markdown("""
-#### Step 1: Exclude domains
+### Step 1: Exclude domains
 If you choose to help us out by sharing your data, you can list any number of keywords in this box to exclude. Any domain, search, or url which contains the keyword will be removed. We will not save your keywords anywhere.
 """)
 
@@ -34,7 +36,7 @@ if st.button("Save keywords"): #submit button auto-saves text box
     st.error("Please enter keywords to save.")
 
 st.markdown("""
-#### Step 2: Upload and Review
+### Step 2: Upload and Review
 Upload your file below to apply the automatic filters and view the data that will be shared with the team. Please review it to make sure you have excluded everything that you would not want to share.
 """)
 
@@ -96,8 +98,8 @@ else:
   render_raw_table(df)
 
 st.markdown("""
-#### Step 3: Upload your data
+### Step 3: Upload your data
 If you are comfortable with the data being shared, go ahead and hit 'send' to send it to our database below. If you want to go back and exclude more domains, you can always edit your list and re-upload your data above. We thank you for your contribution!
 """)
 
-st.button("Send")
+st.button("Send your Data")
