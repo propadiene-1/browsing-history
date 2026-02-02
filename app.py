@@ -11,9 +11,56 @@ from app_functions import *
 # Render user instructions
 # ------------------------
 
+def filter_data(df, keywords): #keywords stored as a dic
+    dropped_indices = []
+    for index, row in df.iterrows():
+        for keyword in keywords.keys():
+            if row.astype(str).str.contains(keyword, case=False).any(): #case-insensitive, column-insensitive
+                dropped_indices.append(index)
+                break
+    return df.drop(dropped_indices) #drop once at end for efficiency
+
+def convert_to_df(uploaded_file):
+    #process file into df
+    try:
+        temp_path = save_uploaded_file_to_temp(uploaded_file)
+        df = load_chrome_history_db(temp_path)
+    except Exception as e:
+        st.error(f"Unable to read the file. Error: {e}")
+    return
+
 def render_instructions():
 
-    st.markdown("### Step 1: Upload your History File")
+    st.markdown("""
+    ### Step 1: Exclude domains
+    Before uploading your data, you can list any number of keywords in this box to exclude. Any domain, search, or url which contains the keyword will be removed. 
+    
+    We will not save your keywords anywhere.
+    """)
+
+    st.info("**NOTE:** Keywords must be comma-separated.")
+
+    user_input = st.text_area(
+        "placeholder label",
+        max_chars=None,
+        on_change=None, 
+        placeholder="Enter keywords...", 
+        disabled=False, 
+        label_visibility="collapsed", 
+        width="stretch")
+
+    if 'keywords' not in st.session_state: #save keywords into dic for this session
+        st.session_state.keywords = {}
+
+    if st.button("Save keywords"): #submit button auto-saves text box
+        if user_input:
+            items = [line.strip() for line in user_input.split(',') if line.strip()]
+            st.session_state.keywords = {i: 0 for i in items}     #store input as keywords
+            st.success(f"**SAVED KEYWORDS:** {user_input}")
+        else:
+            st.error("Please enter keywords to save.")
+
+    st.markdown("### Step 2: Upload and Review your History File")
     
     st.write("Instructions to get your History file")
     st.info("**IMPORTANT:**  Make sure you have closed Google Chrome before uploading your data.")
@@ -50,14 +97,27 @@ def render_instructions():
     
     st.markdown("""##### Upload your file below!""")
 
+    st.info("""
+    **NOTE:** The table below is NOT sent or stored anywhere except your temporary cache.
+    """)
+
+# ------------------
+# Download Filtering
+# ------------------
+
+#@st.dialog("Prepare Data", *, width="small", dismissible=True, icon=None, on_dismiss="ignore")
+#if st.button("Download blah blah")
+#prepare_download(session_counts)
+#def prepare_download(df): #filter df using keywords to prep for download
+
 # --------------------------
 # Render data visualizaitons
 # --------------------------
 
 def render_data():
-    
-    #STEP 1 UPLOAD YOUR FILE
-    uploaded_file = st.file_uploader(    #render the file uploader
+
+    #FILE PROCESSING (COPIED FROM MAIN APP)
+    uploaded_file = st.file_uploader(   #render the file uploader
         "placeholder label to avoid error",
         label_visibility="collapsed",
         type=None,
@@ -74,6 +134,7 @@ def render_data():
         return
     
     #data cleaning for df
+    df = filter_data(df, st.session_state.keywords) #filter data
     df = add_domain(df)
     df["visit_time"] = df["visit_time"].apply(chrome_time_to_datetime) #human-readable time
     raw_data = df                  #save raw visit data
@@ -82,8 +143,8 @@ def render_data():
 
     st.markdown("---")
 
-    #STEP 2 RENDER RAW TABLE
-    st.subheader("Step 2: View your Raw Browsing Data")
+    #VIEW FILTERED BROWSING DATA
+    st.subheader("Your Filtered Browsing Data")
 
     #render overall stats bar
     col1, col2, col3 = st.columns([0.3,0.3,0.4])
@@ -94,7 +155,7 @@ def render_data():
     with col3:
         st.write(f"**Timeframe:** {df['session_start'].min()} to {df['session_end'].max()}")
 
-    st.info("Each row represents a browsing session of 30 minutes or less. You can sort columns by clicking headers.")
+    st.info("""Review your filtered data below. Each row represents a browsing session of 30 minutes or less. You can sort columns by clicking headers.""")
 
     #render raw table
     render_raw_table(df)
