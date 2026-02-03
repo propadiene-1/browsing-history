@@ -21,7 +21,7 @@ This app analyzes your Google Chrome browsing history. It does not save any of y
 
     ![Alt text](./static/screenshot.png)
 
-### Errors
+### Handling Errors
 1. **Command not found: streamlit**
    
    Instead of running with Streamlit directly, try running the following:
@@ -30,6 +30,7 @@ This app analyzes your Google Chrome browsing history. It does not save any of y
    ```
    
 3. **Error related to "width = 'stretch'"**
+
    Update your Streamlit:
    ```
    pip install --upgrade streamlit
@@ -37,6 +38,6 @@ This app analyzes your Google Chrome browsing history. It does not save any of y
 
 ### Authors
 
-Made by Aileen Liang, advised by Eni Mustafaraj.
+Made by the Wellesley Cred Lab. Advised by Eni Mustafaraj.
 
 This project was greatly inspired by [the Cookies Project](https://cookiesproject.streamlit.app/) made by Jessica, Nina, Crystal, and Dianna from Wellesley Cred Lab.
