@@ -6,11 +6,11 @@ Currently adapted to host an event for [Love Data Week](https://www.icpsr.umich.
 
 ### Descriptions
 
-This app allows you to view analytics for your browsing history (such as which sites you visit the most, and how you navigate Google Search results). It uses your local browsing history file and currently works for Google Chrome, Safari, and Firefox. 
+This app allows you to view analytics for your browsing history, using your local browsing history file. It currently works for Google Chrome, Safari, and Firefox. 
 
-We NOT store any of your data. It's stored in a cache on the site, but will clear when you do a hard refresh (Cmd/Ctrl+Shift+R). 
+We NOT store any of your data. It's stored in a temporary cache, but will clear when you do a hard refresh (Cmd/Ctrl+Shift+R). 
 
-However, you can choose to send us your data for research purposes! If you want to do this, you can enter any number of keywords to filter out (any search containing the keyword will be removed from the data we receive). 
+You can choose to send us your data for our research! If you want, you can enter keywords to filter out before sending it. Any search containing a keyword will be removed from the data we receive.
 
 ### Quick Start
 
