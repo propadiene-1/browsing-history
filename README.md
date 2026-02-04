@@ -2,7 +2,7 @@
 
 An interactive Streamlit dashboard to analyze your browsing history!
 
-Currently adapted to host a [Love Data Week](https://www.icpsr.umich.edu/sites/icpsr/about/news-events/international-love-data-week) event at Wellesley College.
+Currently adapted to host an event for [Love Data Week](https://www.icpsr.umich.edu/sites/icpsr/about/news-events/international-love-data-week) at Wellesley College.
 
 ### Descriptions
 
