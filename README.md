@@ -1,4 +1,4 @@
-## Browsing History 
+## The Private Life of your Browser
 
 An interactive Streamlit dashboard to analyze your browsing history!
 
