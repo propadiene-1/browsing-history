@@ -33,6 +33,21 @@ def load_chrome_history_db(db_path):
     conn.close()
     return df
 
+#load SQLite db from safari to a pandas df
+def load_safari_history_db(db_path):
+    conn = sqlite3.connect(db_path)
+    query = """ 
+        SELECT
+            id,
+            title,
+            visit_time
+        FROM history_visits as visits
+        ORDER BY visits.visit_time
+    """ #join urls by visit based on id and sort
+    df = pd.read_sql_query(query, conn)
+    conn.close()
+    return df
+
 # -------------------------------
 # Raw data cleaning (browser data)
 # -------------------------------
