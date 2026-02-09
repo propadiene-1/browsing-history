@@ -1,6 +1,16 @@
-## Browsing History 
+## The Private Life of your Browser
 
-This app analyzes your Google Chrome browsing history. It does not save any of your data.
+An interactive Streamlit dashboard to analyze your browsing history!
+
+Currently adapted to host an event for [Love Data Week](https://www.icpsr.umich.edu/sites/icpsr/about/news-events/international-love-data-week) at Wellesley College.
+
+### Descriptions
+
+This app allows you to view analytics for your browsing history, using your local browsing history file. It currently works for Google Chrome, Safari, and Firefox. 
+
+We not store any of your data. It's stored in a temporary cache, but will clear when you do a hard refresh (Cmd/Ctrl+Shift+R). 
+
+You can choose to send us your data for our research. If you want, you can also enter keywords to filter out; any search containing a keyword will be removed from the data we receive.
 
 ### Quick Start
 
