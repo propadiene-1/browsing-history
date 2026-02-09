@@ -2,16 +2,16 @@ import streamlit as st
 
 st.set_page_config(page_title="About this Site", layout="wide")
 
-st.markdown("## Welcome!")
+st.markdown("## About this Site")
 
-st.markdown("### About this Site")
+st.markdown("### Description")
 st.markdown("""
 
 This is an app for you to view your browsing history!
 
 This site was greatly inspired by [the Cookies Project](https://cookiesproject.streamlit.app/) made by Jessica, Nina, Crystal, and Dianna from Wellesley Cred Lab. Go check it out!
 
-#### What does it do?
+### What does it do?
 
 This app will:
 - Read your (local) Google Chrome history.
@@ -24,9 +24,9 @@ This app will:
 
 The goal is to see how many sites you actually don't visit often!
 
-#### Privacy
+### Privacy
 We do **NOT** store any of your data! Your file is only in the current session's memory. It is not stored or sent anywhere else, unless you choose to send it to us with the "share data" page.
 
-#### Authors
+### Authors
 Made by Aileen Liang, and advised by Eni Mustafaraj.
 """)

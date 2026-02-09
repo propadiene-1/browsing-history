@@ -1,0 +1,125 @@
+import streamlit as st 
+from app_functions import *
+
+st.set_page_config(page_title = "Home", layout="wide")
+
+st.markdown("## Welcome!")
+
+st.markdown("### Upload your data below to get started!")
+
+#CONVERT FILE TO DF
+def convert_to_df(uploaded_file):
+    #process file into df
+    try:
+        temp_path = save_uploaded_file_to_temp(uploaded_file)
+        df = load_chrome_history_db(temp_path)
+    except Exception as e:
+        st.error(f"Unable to read the file. Error: {e}")
+    return
+
+#KEYWORD FILTERING
+def filter_data(df, keywords): #keywords stored as a dic
+    dropped_indices = []
+    for index, row in df.iterrows():
+        for keyword in keywords.keys():
+            if row.astype(str).str.contains(keyword, case=False).any(): #case-insensitive, column-insensitive
+                dropped_indices.append(index)
+                break
+    return df.drop(dropped_indices) # drop once at end for efficiency
+
+def render_instructions():
+
+    st.markdown("""
+    ### Step 1: Exclude domains
+    Before uploading your data, you can list any number of keywords in this box to exclude. Any domain, search, or url which contains the keyword will be removed. 
+    
+    We will not save your keywords anywhere.
+    """)
+
+    st.info("**NOTE:** Keywords must be **comma-separated.** Remember to **end with a comma**. EX: chatgpt, gemini, claude,")
+
+    user_input = st.text_area(
+        "placeholder label",
+        max_chars=None,
+        on_change=None, 
+        placeholder="Enter keywords...", 
+        disabled=False, 
+        label_visibility="collapsed", 
+        width="stretch")
+
+    if 'keywords' not in st.session_state: #save keywords into dic for this session
+        st.session_state.keywords = {}
+
+    if st.button("Save keywords"): #submit button auto-saves text box
+        if user_input:
+            items = [line.strip() for line in user_input.split(',') if line.strip()]
+            st.session_state.keywords = {i: 0 for i in items}     #store input as keywords
+            st.success(f"**SAVED KEYWORDS:** {user_input}")
+        else:
+            st.error("Please enter keywords to save.")
+
+    st.markdown("### Step 2: Upload and Review your History File")
+    
+    st.write("Instructions to get your History file")
+    st.info("**IMPORTANT:**  Make sure you have closed Google Chrome before uploading your data.")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("#### Windows")
+        st.markdown("""
+
+        1. Open file explorer
+
+        2. %LOCALAPPDATA%\\Google\\Chrome\\User Data\\
+
+        3. Choose either 'Default' or 'Profile 1', 'Profile 2', etc.
+
+        4. **Drag and Drop:** 'History'"""
+        )
+
+    with col2:
+        st.markdown("#### macOS")
+        st.markdown("""
+
+        1. Open Finder
+        
+        2. Command + Shift + G
+
+        3. ~/Library/Application Support/Google/Chrome/
+
+        4. Choose either 'Default' or 'Profile 1', 'Profile 2', etc.
+
+        5. **Drag and Drop:** 'History'
+        """
+        )
+    
+    st.markdown("""##### Upload your file below!""")
+
+    st.info("""
+    **NOTE:** The table below is NOT sent or stored anywhere except your temporary cache.
+    """)
+
+render_instructions()
+
+#FILE PROCESSING
+uploaded_file = st.file_uploader(   #render the file uploader
+    "placeholder label to avoid error",
+    label_visibility="collapsed",
+    type=None,
+)
+if uploaded_file is None:
+    st.warning("Please upload the file to proceed.")
+else:
+    try:  #PROCESS FILE INTO A DF
+        temp_path = save_uploaded_file_to_temp(uploaded_file)
+        df = load_chrome_history_db(temp_path)      #SAVE IN SESSION (CACHE)
+        #data cleaning for df
+        df = filter_data(df, st.session_state.keywords) #filter out keywords
+
+        if df.empty:    #check for empty after filtering
+            st.error("There is no browsing data in this file.")
+            #end everything here
+        else:
+            st.session_state.df = df    #store into session (cache)
+    except Exception as e:
+        st.error(f"Unable to read the file. Error: {e}")

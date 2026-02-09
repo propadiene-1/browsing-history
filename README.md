@@ -25,7 +25,7 @@ You can choose to send us your data for our research. If you want, you can also 
     ```
 3. **Run app in streamlit**
     ```
-    streamlit run About.py
+    streamlit run Home.py
     ```
 4. **Follow instructions in the app for analysis**
 
