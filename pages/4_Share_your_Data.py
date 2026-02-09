@@ -1,5 +1,4 @@
 import streamlit as st
-from app_functions import *
 
 st.set_page_config(page_title="Share your Data", layout="wide")
 

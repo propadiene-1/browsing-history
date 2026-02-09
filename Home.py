@@ -1,11 +1,11 @@
 import streamlit as st 
+import sqlite3
+import tempfile
+from urllib.parse import urlparse
+from datetime import datetime, timedelta
 from app_functions import *
 
 st.set_page_config(page_title = "Home", layout="wide")
-
-st.markdown("## Welcome!")
-
-st.markdown("### Upload your data below to get started!")
 
 #CONVERT FILE TO DF
 def convert_to_df(uploaded_file):
@@ -30,13 +30,13 @@ def filter_data(df, keywords): #keywords stored as a dic
 def render_instructions():
 
     st.markdown("""
-    ### Step 1: Exclude domains
+    ### Exclude domains
     Before uploading your data, you can list any number of keywords in this box to exclude. Any domain, search, or url which contains the keyword will be removed. 
     
     We will not save your keywords anywhere.
     """)
 
-    st.info("**NOTE:** Keywords must be **comma-separated.** Remember to **end with a comma**. EX: chatgpt, gemini, claude,")
+    st.info("**IMPORTANT:** Keywords must be comma-separated (including the ending). EX: chatgpt, gemini, claude,")
 
     user_input = st.text_area(
         "placeholder label",
@@ -58,10 +58,10 @@ def render_instructions():
         else:
             st.error("Please enter keywords to save.")
 
-    st.markdown("### Step 2: Upload and Review your History File")
+    st.markdown("### Upload your History File to Get Started.")
     
-    st.write("Instructions to get your History file")
-    st.info("**IMPORTANT:**  Make sure you have closed Google Chrome before uploading your data.")
+    st.write("Instructions to get your History file below.")
+    st.info("**NOTE:** Check that you have closed your browser (e.g. Google Chrome) before uploading your data.")
     col1, col2 = st.columns(2)
 
     with col1:
@@ -96,8 +96,10 @@ def render_instructions():
     st.markdown("""##### Upload your file below!""")
 
     st.info("""
-    **NOTE:** The table below is NOT sent or stored anywhere except your temporary cache.
+    **NOTE:** Your file will not be sent anywhere! It is stored in the temporary streamlit cache (disappears with Cmd/Ctrl + R).
     """)
+
+st.markdown("## Welcome!")
 
 render_instructions()
 
@@ -112,14 +114,22 @@ if uploaded_file is None:
 else:
     try:  #PROCESS FILE INTO A DF
         temp_path = save_uploaded_file_to_temp(uploaded_file)
-        df = load_chrome_history_db(temp_path)      #SAVE IN SESSION (CACHE)
-        #data cleaning for df
+        df = load_chrome_history_db(temp_path)
         df = filter_data(df, st.session_state.keywords) #filter out keywords
 
         if df.empty:    #check for empty after filtering
             st.error("There is no browsing data in this file.")
-            #end everything here
         else:
-            st.session_state.df = df    #store into session (cache)
+            st.session_state.uploaded_df = df    #checkpoint: store user-uploaded history in a df
+
+            df = add_domain(df)
+            df["visit_time"] = df["visit_time"].apply(chrome_time_to_datetime) #human-readable time
+            st.session_state.raw_visit_data = df                  #checkpoint: save raw visit data
+                
+            df = split_sessions(df)     #record sessions > visits
+            df = add_session_length(df)
+
+            st.session_state.raw_session_data = df       #checkpoint: save raw data in sessions
+
     except Exception as e:
         st.error(f"Unable to read the file. Error: {e}")

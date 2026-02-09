@@ -1,18 +1,8 @@
 import streamlit as st
 import pandas as pd
-import sqlite3
-import tempfile
-from urllib.parse import urlparse
-from datetime import datetime, timedelta
 import altair as alt
 
-#add parent directory to path to import app_functions
-#import sys
-#from pathlib import Path
-#sys.path.append(str(Path(__file__).parent.parent))
-from app_functions import *
-
-st.set_page_config(page_title = "Explore your Data", layout="wide")
+st.set_page_config(page_title = "Explore your Browsing Data", layout="wide")
 
 # ------------------
 # Download Filtering
@@ -23,8 +13,83 @@ st.set_page_config(page_title = "Explore your Data", layout="wide")
 #prepare_download(session_counts)
 #def prepare_download(df): #filter df using keywords to prep for download
 
+# ----------------------------------------------
+# FUNCTIONS: PREP FOR PIE CHART: COUNTING VISITS
+# ----------------------------------------------
+
+#aggregate # of browsing sessions by domain
+def aggregate_browsing_sessions(df):
+    session_counts = df['domain'].value_counts().reset_index() #sum all sessions w/ same domain
+    session_counts.columns = ['domain', 'total_sessions']
+    return session_counts  #return df with only domain + total visits
+
+#count domains below vs above threshold
+def compute_visit_threshold_counts(session_counts, threshold=10):
+    less_count = len(session_counts[session_counts['total_sessions'] < threshold]) #mask df and sum result
+    more_equal_count = len(session_counts[session_counts['total_sessions'] >= threshold])
+
+    return pd.DataFrame(
+        {
+            "Category": [
+                f"Websites visited < {threshold} times",
+                f"Websites visited ≥ {threshold} times",
+            ],
+            "Total Count": [less_count, more_equal_count],
+        }
+    )
+
+# -----------------------------------------------
+# FUNCTION: RENDER PIE CHART (by visit threshold)
+# -----------------------------------------------
+
+def render_visit_threshold_pie_chart(threshold_df):
+    if threshold_df["Total Count"].sum() == 0:
+        st.info("No data available for pie chart.")
+        return
+    chart = (
+        alt.Chart(threshold_df)
+        .mark_arc()
+        .encode(
+            theta="Total Count:Q",
+            color=alt.Color(
+                "Category:N",
+                legend=alt.Legend(
+                    orient="left",
+                    title=None,
+                    padding=0,
+                    rowPadding=0,
+                    columnPadding=0
+                )
+            ),
+            tooltip=["Category", "Total Count"],
+        )
+        .properties(width=400, height=400)
+    )
+    st.altair_chart(chart, width='stretch')
+
+# ------------------------------------------------
+# FUNCTION: RENDER BAR CHART (domains by # visits)
+# ------------------------------------------------
+
+def render_domain_bar_chart(session_counts, top_n=20):
+    if session_counts.empty:
+        st.info("No browsing data to show.")
+        return
+    top_domains = session_counts.head(top_n)
+    chart = (
+        alt.Chart(top_domains)
+        .mark_bar()
+        .encode(
+            x=alt.X("domain:N", sort="-y", title="Domain"),
+            y=alt.Y("total_sessions:Q", title="Browsing Sessions"),
+            tooltip=["domain", "total_sessions"],
+        )
+        .properties(height=400)
+    )
+    st.altair_chart(chart, width='stretch')
+
 # --------------------------
-# Render data visualizaitons
+# Render data visualizations
 # --------------------------
 
 def render_data():
@@ -37,7 +102,7 @@ def render_data():
         st.error("raw visit data not in cache!")
     
     #get data from cache
-    df = st.session_state.df
+    uploaded_df = st.session_state.uploaded_df
     raw_session_data = st.session_state.raw_session_data
     raw_visit_data = st.session_state.raw_visit_data
 
@@ -107,20 +172,12 @@ def render_data():
         st.write(f"**Total:** {len(domains_below)} domains")
 
     #ADD EXPLANATION BELOW
-        
-    st.markdown("---")
-
-    #STEP 4 VIEW YOUR SEARCH BEHAVIOR
-    #st.subheader("Step 4: View Your Search Behavior")
-
-    st.markdown("#### Recent Search Behavior")
-    render_query_table(raw_visit_data)
     
 
-st.markdown("## **Explore your Data**")
+st.markdown("## **Visualize your Browsing Data**")
 
-if 'df' not in st.session_state:
-    st.info("Please upload your History file.")
+if 'uploaded_df' not in st.session_state:
+    st.info("Upload your History file to view this page.")
 else:
     render_data()
 #def main():
