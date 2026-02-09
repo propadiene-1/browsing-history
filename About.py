@@ -2,8 +2,9 @@ import streamlit as st
 
 st.set_page_config(page_title="About this Site", layout="wide")
 
-st.markdown("## About this Site")
+st.markdown("## Welcome!")
 
+st.markdown("### About this Site")
 st.markdown("""
 
 This is an app for you to view your browsing history!
