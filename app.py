@@ -18,7 +18,7 @@ def filter_data(df, keywords): #keywords stored as a dic
             if row.astype(str).str.contains(keyword, case=False).any(): #case-insensitive, column-insensitive
                 dropped_indices.append(index)
                 break
-    return df.drop(dropped_indices) #drop once at end for efficiency
+    return df.drop(dropped_indices) # drop once at end for efficiency
 
 def convert_to_df(uploaded_file):
     #process file into df
@@ -136,7 +136,7 @@ def render_data():
         return
     
     #data cleaning for df
-    df = filter_data(df, st.session_state.keywords) #filter data
+    df = filter_data(df, st.session_state.keywords) #filter out keywords
 
     if df.empty:    #check for empty after filtering
         st.error("There is no browsing data in this file.")
@@ -144,40 +144,31 @@ def render_data():
     
     df = add_domain(df)
     df["visit_time"] = df["visit_time"].apply(chrome_time_to_datetime) #human-readable time
-    raw_data = df                  #save raw visit data
+    raw_visit_data = df                  #checkpoint: save raw visit data
+    
     df = split_sessions(df)     #record sessions > visits
     df = add_session_length(df)
 
     st.markdown("---")
+    raw_session_data = df       #checkpoint: save raw data in sessions
 
     #VIEW FILTERED BROWSING DATA
     st.subheader("Your Filtered Browsing Data")
-
-    #render overall stats bar
-    col1, col2, col3 = st.columns([0.3,0.3,0.4])
-    with col1:
-        st.write(f"**Total logged browsing sessions:**  {len(df)}") #total # history entries
-    with col2:
-        st.write(f"**Unique domains:** {df['domain'].nunique()}")
-    with col3:
-        st.write(f"**Timeframe:** {df['session_start'].min()} to {df['session_end'].max()}")
-
+    render_stats_bar(raw_session_data)
     st.info("""Review your filtered data below. Each row represents a browsing session of 30 minutes or less. You can sort columns by clicking headers.""")
-
+    
     #render raw table
-    render_raw_table(df)
-
+    render_raw_table(raw_session_data)
     st.markdown("---")
 
     #STEP 3 VISUAL CHARTS
 
     st.subheader("Step 3: Visualize your Data")
-    
-    session_counts = aggregate_browsing_sessions(df) #aggregate all visits per domain
+    aggregate_sessions_data = aggregate_browsing_sessions(raw_session_data) #aggregate all sessions per domain
 
     #DOWNLOAD TOP DOMAINS (CSV)
-    session_counts.sort_values(['total_visits'])
-    top_1000_domains = session_counts.head(1000) #top 1000 most visited domains
+    aggregate_sessions_data.sort_values(['total_sessions'])
+    top_1000_domains = aggregate_sessions_data.head(1000) #top 1000 most visited domains
     csv_data = top_1000_domains.to_csv()
 
     #RENDER BAR CHART
@@ -191,7 +182,7 @@ def render_data():
             file_name=f"top_1000_domains.csv",
         )
 
-    if len(session_counts) == 0:
+    if len(aggregate_sessions_data) == 0:
         st.warning("There are no sessions in your browsing history to display.")
         return
 
@@ -199,7 +190,7 @@ def render_data():
     top_n = 20
     top_n = st.slider("Number of domains", 5, 100, top_n, 5)
 
-    render_domain_bar_chart(session_counts, top_n)
+    render_domain_bar_chart(aggregate_sessions_data, top_n)
 
     #RENDER PIE CHART
     st.markdown("#### Percentage of Highly-Visited Domains")
@@ -208,12 +199,13 @@ def render_data():
     threshold = 10 #domain visit threshold input adjuster
     with col1:
         threshold = st.number_input("Adjust visit threshold", 1, 1000, 10, 1, width=200)
-        threshold_df = compute_visit_threshold_counts(session_counts, threshold) #just stores below count, above count
+        threshold_df = compute_visit_threshold_counts(aggregate_sessions_data, threshold) #just stores below count, above count
+        print(threshold_df)
         render_visit_threshold_pie_chart(threshold_df) #render with threshold
 
     #RENDER TOTAL PERCENT (BELOW AND ABOVE THRESHOLD)
-    total_domains = len(session_counts)
-    below_count = threshold_df[threshold_df['category'] == f"visited < {threshold} times"]['count'].iloc[0]
+    total_domains = len(aggregate_sessions_data)
+    below_count = threshold_df[threshold_df["Category"] == f"Websites visited < {threshold} times"]['Total Count'].iloc[0]
     above_count = total_domains - below_count
 
     percent_below = round((below_count / total_domains) * 100, 2)
@@ -225,7 +217,7 @@ def render_data():
             ### You visited :blue[{percent_below}%] of the sites in your browser history less than :blue[{threshold}] times.
             """)
         
-        domains_below = session_counts[session_counts['total_visits'] < threshold] #mask df with only rows < threshold
+        domains_below = aggregate_sessions_data[aggregate_sessions_data['total_sessions'] < threshold] #mask df with only rows < threshold
 
         #DISPLAY LIST (less-visited sites)
         if len(domains_below) > 0:
@@ -240,17 +232,19 @@ def render_data():
     #STEP 4 VIEW YOUR SEARCH BEHAVIOR
     st.subheader("Step 4: View Your Search Behavior")
 
-    render_query_table(raw_data)
+    render_query_table(raw_visit_data)
     
 # -------------------------
 # Launch the app
 # -------------------------
 
-def main():
-    st.markdown("## **Explore your Data**")
-    st.set_page_config(page_title="Explore your Data", layout="wide")
-    render_instructions() #STEP 1
-    render_data() #STEP 2-4
+st.markdown("## **Explore your Data**")
 
-if __name__ == "__main__":
-    main()
+render_instructions() #STEP 1
+render_data() #STEP 2-4
+#def main():
+#   st.set_page_config(page_title="Explore your Data", layout="wide")
+#   st.set_page_config(page_title="Browser History Analyzer", layout="wide")
+
+#if __name__ == "__main__":
+#    main()

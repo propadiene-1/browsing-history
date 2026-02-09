@@ -142,21 +142,21 @@ def add_session_length(df):
 #aggregate # of browsing sessions by domain
 def aggregate_browsing_sessions(df):
     session_counts = df['domain'].value_counts().reset_index() #sum all sessions w/ same domain
-    session_counts.columns = ['domain', 'total_visits']
-    return session_counts
+    session_counts.columns = ['domain', 'total_sessions']
+    return session_counts  #return df with only domain + total visits
 
 #count domains below vs above threshold
 def compute_visit_threshold_counts(session_counts, threshold=10):
-    less_count = len(session_counts[session_counts['total_visits'] < threshold]) #mask df and sum result
-    more_equal_count = len(session_counts[session_counts['total_visits'] >= threshold])
+    less_count = len(session_counts[session_counts['total_sessions'] < threshold]) #mask df and sum result
+    more_equal_count = len(session_counts[session_counts['total_sessions'] >= threshold])
 
     return pd.DataFrame(
         {
-            "category": [
-                f"visited < {threshold} times",
-                f"visited ≥ {threshold} times",
+            "Category": [
+                f"Websites visited < {threshold} times",
+                f"Websites visited ≥ {threshold} times",
             ],
-            "count": [less_count, more_equal_count],
+            "Total Count": [less_count, more_equal_count],
         }
     )
 
@@ -177,6 +177,17 @@ def render_raw_table(df):
     else:
         st.info("No browsing data to show.")
 
+#render stats bar for a raw table
+def render_stats_bar(df):
+    col1, col2, col3 = st.columns([0.3,0.3,0.4])
+    with col1:
+        st.write(f"**Total logged browsing sessions:**  {len(df)}") #total # history entries
+    with col2:
+        st.write(f"**Unique domains:** {df['domain'].nunique()}")
+    with col3:
+        st.write(f"**Timeframe:** {df['session_start'].min()} to {df['session_end'].max()}")
+    return
+
 #render bar chart of domains by # visits
 def render_domain_bar_chart(session_counts, top_n=20):
     if session_counts.empty:
@@ -188,8 +199,8 @@ def render_domain_bar_chart(session_counts, top_n=20):
         .mark_bar()
         .encode(
             x=alt.X("domain:N", sort="-y", title="Domain"),
-            y=alt.Y("total_visits:Q", title="Visits"),
-            tooltip=["domain", "total_visits"],
+            y=alt.Y("total_sessions:Q", title="Browsing Sessions"),
+            tooltip=["domain", "total_sessions"],
         )
         .properties(height=400)
     )
@@ -197,16 +208,16 @@ def render_domain_bar_chart(session_counts, top_n=20):
 
 #render pie chart for sites by visit threshold
 def render_visit_threshold_pie_chart(threshold_df):
-    if threshold_df["count"].sum() == 0:
+    if threshold_df["Total Count"].sum() == 0:
         st.info("No data available for pie chart.")
         return
     chart = (
         alt.Chart(threshold_df)
         .mark_arc()
         .encode(
-            theta="count:Q",
+            theta="Total Count:Q",
             color=alt.Color(
-                "category:N",
+                "Category:N",
                 legend=alt.Legend(
                     orient="left",
                     title=None,
@@ -215,7 +226,7 @@ def render_visit_threshold_pie_chart(threshold_df):
                     columnPadding=0
                 )
             ),
-            tooltip=["category", "count"],
+            tooltip=["Category", "Total Count"],
         )
         .properties(width=400, height=400)
     )
