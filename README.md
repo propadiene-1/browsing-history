@@ -31,7 +31,7 @@ You can choose to send us your data for our research. If you want, you can also 
 
     ![Alt text](./static/screenshot.png)
 
-### Handling Errors
+### Fixing Errors
 1. **Command not found: streamlit**
    
    Instead of running with Streamlit directly, try running the following:

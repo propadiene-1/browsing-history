@@ -28,5 +28,5 @@ The goal is to see how many sites you actually don't visit often!
 We do **NOT** store any of your data! Your file is only in the current session's memory. It is not stored or sent anywhere else, unless you choose to send it to us with the "share data" page.
 
 ### Authors
-Made by Aileen Liang, and advised by Eni Mustafaraj.
+Made by the Wellesley Cred Lab. Led by Aileen Liang, advised by Prof. Eni Mustafaraj.
 """)
