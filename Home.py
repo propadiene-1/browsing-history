@@ -22,9 +22,13 @@ def filter_data(df, keywords): #keywords stored as a dic
     dropped_indices = []
     for index, row in df.iterrows():
         for keyword in keywords.keys():
-            if row.astype(str).str.contains(keyword, case=False).any(): #case-insensitive, column-insensitive
-                dropped_indices.append(index)
-                break
+            try:
+                if row.astype(str).str.contains(keyword, case=False).any(): #case-insensitive, column-insensitive
+                    dropped_indices.append(index)
+                    break
+            except Exception as e:
+                st.warning(f"Error filtering row {index}: {e}")
+                continue
     return df.drop(dropped_indices) # drop once at end for efficiency
 
 def render_chrome_instructions():
@@ -143,7 +147,8 @@ user_input = st.text_area(
     placeholder="Enter keywords...", 
     disabled=False, 
     label_visibility="collapsed", 
-    width="stretch")
+    width="stretch",
+    height=60)
 
 if 'keywords' not in st.session_state: #save keywords into dic for this session
     st.session_state.keywords = {}
@@ -194,9 +199,20 @@ uploaded_file = st.file_uploader(   #render the file uploader
 if uploaded_file is None:
     st.warning("Please upload the file to proceed.")
 else:
+    if uploaded_file.size > 500_000_000:  # 500MB limit
+        st.error("File too large (>500MB)")
+        st.stop()
     try:  #PROCESS FILE INTO A DF
         df = pd.DataFrame()
         temp_path = save_uploaded_file_to_temp(uploaded_file)
+        #check it's a valid SQLite file
+        try:
+            conn = sqlite3.connect(temp_path)
+            conn.execute("SELECT 1")
+            conn.close()
+        except sqlite3.Error:
+            st.error("Invalid SQLite database file")
+            st.stop()
         browser = detect_browser(temp_path)
         st.session_state.browser = browser      #checkpoint: save browser type for later
 
@@ -238,6 +254,9 @@ else:
                 st.session_state.raw_visit_data = df                  #checkpoint: save raw visit data
                     
                 df = split_sessions(df)     #record sessions > visits
+                if df.empty:  # ADD THIS
+                    st.error("No browsing sessions could be created from your data")
+                    st.stop()
                 df = add_session_length(df)
                 st.session_state.raw_session_data = df       #checkpoint: save raw data in sessions
 

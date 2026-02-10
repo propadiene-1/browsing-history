@@ -29,7 +29,14 @@ def render_wordcloud(raw_data):
         search_title = row['title'].replace('- Google Search', '')
         wordlist.append(search_title)
 
+    if len(wordlist) == 0:
+        st.info("No search queries found")
+        return
+    
     all_words = " ".join(wordlist)
+    if not all_words.strip():  # ADD THIS
+        st.info("No valid words in search queries")
+        return
 
     wordcloud = WordCloud(
         width=1000,
@@ -37,7 +44,8 @@ def render_wordcloud(raw_data):
         background_color='white',
         colormap='Blues_r',  # Example: use a specific color map
         max_words=200,
-        font_path = "/Users/propadiene/cloned-repos/browsing-history-app/pages/Source_Sans_3/SourceSans3-Regular.ttf",
+        font_path = Path(__file__).parent / "Source_Sans_3" / "SourceSans3-Regular.ttf",
+        #"/Users/propadiene/cloned-repos/browsing-history-app/pages/Source_Sans_3/SourceSans3-Regular.ttf",
         scale=3, # Increase scale for higher resolution on save
         random_state=16     #set random state for reproducible results
     ).generate(all_words)
@@ -60,15 +68,21 @@ def render_query_table(raw_data, limit=30):
         st.info("No google searches were found in your history.")
         return
     st.markdown("### Recent Search Behavior")
-    st.info(f"Showing {min(limit, len(query_indices))} of your most recent Google searches. Click to see your browsing behavior after the search!")
+    st.markdown(f"Below you can view {min(limit, len(query_indices))} of your most recent searches. Each one opens a dropdown, revealing the next 10 sites that you visited after entering the search.")
 
     #only go up to the last [limit] searches
     recent_searches = query_indices[::-1][:limit]
 
     for search_index in recent_searches:
         row = raw_data.iloc[search_index] #look up query in full data table
-        search_title = row['title'].replace('- Google Search', '')
+        if pd.isna(row['title']) or not isinstance(row['title'], str):
+            search_title = "Untitled Search"
+        else:
+            search_title = row['title'].replace('- Google Search', '')
         search_results = raw_data.iloc[search_index+1 : search_index+11][['visit_time', 'domain', 'url', 'title']]
+        if search_index + 1 >= len(raw_data):
+            st.info("No results after this search")
+            continue
         
         with st.expander(f"{search_title} | {row['visit_time']}"): #display in streamlit
             st.dataframe(search_results, hide_index=True, width='stretch')

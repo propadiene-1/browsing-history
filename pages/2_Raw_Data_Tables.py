@@ -27,7 +27,8 @@ def render_stats_bar(df):
     with col1:
         st.write(f"**Total logged browsing sessions:**  {len(df)}") #total # history entries
     with col2:
-        st.write(f"**Unique domains:** {df['domain'].nunique()}")
+        if 'domain' in df.columns:
+            st.write(f"**Unique domains:** {df['domain'].nunique()}")
     with col3:   #split into cases based on the table
         if 'session_start' in df and 'session_end' in df:
             st.write(f"**Timeframe:** {df['session_start'].min()} to {df['session_end'].max()}")
@@ -40,8 +41,10 @@ def render_stats_bar(df):
 def render_raw_data():
     if 'raw_session_data' not in st.session_state:
         st.error("raw session data not in cache!")
+        return
     if 'raw_visit_data' not in st.session_state:
         st.error("raw visit data not in cache!")
+        return
     
     raw_visit_data = st.session_state.raw_visit_data    #get data from cache
     raw_session_data = st.session_state.raw_session_data

@@ -12,13 +12,19 @@ To share your data, download a CSV of your history using the button below, and t
 
 [**Upload your data here**](https://forms.gle/kb2rbJTU8ScxuSYr8)
 
-The form is completely anonymous.
+Please note that the form does **store your Google profile information in order to allow for uploads**. When you send us your data, it will no longer be anonymized.
+
+To send a less personal version, you can also choose to upload your top 1000 most visited sites on the "Data Visualization" page instead.
 """)
 
-print(st.session_state.raw_visit_data)
+if 'raw_visit_data' not in st.session_state:
+    st.info("Please upload your file to streamlit before sharing.")
+    downloaded_data = pd.DataFrame().to_csv()
+else:
+    downloaded_data = st.session_state.raw_visit_data.to_csv(index=False).encode("utf-8")
 
 st.download_button(     #download button (csv)
     label="Download your Data",
-    data=st.session_state.raw_visit_data.to_csv(index=False).encode("utf-8"),
+    data=downloaded_data,
     file_name=f"visits_csv",
 )

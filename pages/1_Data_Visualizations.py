@@ -4,16 +4,11 @@ import altair as alt
 
 st.set_page_config(page_title = "Explore your Browsing Data", layout="wide")
 
-# HEATMAP
-
-def create_hourly_heatmap():
-    """
-    Create a heatmap showing visits by hour of day and date
-    """
+# -------
+# HEATMAP 
+# -------
+def create_hourly_heatmap(df): #takes in raw visit data
     # Check if data exists
-    if 'raw_visit_data' not in st.session_state:
-        st.warning("Please upload your browsing history first!")
-        return
     
     df = st.session_state.raw_visit_data.copy()
     
@@ -60,7 +55,6 @@ def create_hourly_heatmap():
                     labelAngle=0
                 )),
         
-        # Color: darker blue = more visits
         color=alt.Color(
             'visit_count:Q',
             title='Visits',
@@ -79,7 +73,7 @@ def create_hourly_heatmap():
         title='Browsing Activity Heatmap by Hour'
     )
     
-    st.altair_chart(chart, use_container_width=True)
+    st.altair_chart(chart, width='stretch')
     
     # Summary statistics
     st.markdown("### Activity Summary")
@@ -284,6 +278,10 @@ def render_data():
         st.write(f"**Total:** {len(domains_below)} domains")
 
     #ADD EXPLANATION BELOW
+
+    #RENDER HEATMAP
+    #st.markdown("### Browsing Activity Heatmap")
+    #create_hourly_heatmap()
     
 
 st.markdown("## **Visualize your Browsing Data**")
@@ -306,7 +304,3 @@ else:
 
         #render visualizations
         render_data()
-
-        # Call this function in your Streamlit page
-        st.markdown("### Browsing Activity Heatmap")
-        create_hourly_heatmap()

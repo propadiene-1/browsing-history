@@ -20,11 +20,15 @@ def save_uploaded_file_to_temp(uploaded_file):
 #detect the browser of the history file (based on db titles)
 #might create weird errors for Opera, etc. because they have the same naming conventions as chrome
 def detect_browser(db_path):
-    conn = sqlite3.connect(db_path)
-    tables = {r[0] for r in conn.execute(
-        "SELECT name FROM sqlite_master WHERE type='table'" #select all tables
-    )}
-    conn.close()
+    try:
+        conn = sqlite3.connect(db_path)
+        tables = {r[0] for r in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'" #select all tables
+        )}
+        conn.close()
+    except sqlite3.Error as e:
+        st.error(f"Database error: {e}")
+        return "unknown"
     if "urls" in tables and "visits" in tables:
         return "chrome"
     elif "history_items" in tables and "history_visits" in tables:
@@ -74,8 +78,7 @@ def load_safari_history_db(db_path):
         SELECT
             items.url AS url,
             {title_expr} AS title,
-            visits.visit_time AS visit_time,
-            counts.visit_count AS visit_count
+            visits.visit_time AS visit_time
         FROM history_visits AS visits
         JOIN history_items AS items
             ON visits.history_item = items.id
@@ -85,6 +88,7 @@ def load_safari_history_db(db_path):
     conn.close()
     return df
 
+# counts.visit_count AS visit_count
 #JOIN(
 #   SELECT 
 #       history_item,
@@ -130,7 +134,6 @@ def safari_time_to_datetime(safari_timestamp):
         return None
     try:
         coredata_start = datetime(2001, 1, 1, tzinfo=timezone.utc)
-        total_seconds = int(float(safari_timestamp))   # DROP fractions
         return coredata_start + timedelta(seconds=round(float(safari_timestamp)))
     except:
         return None
