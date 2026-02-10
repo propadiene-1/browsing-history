@@ -50,6 +50,6 @@ If you want, you can also enter keywords to filter out; any search containing a 
 
 ### Authors
 
-Made by the Wellesley Cred Lab. Advised by Eni Mustafaraj.
+Made by Aileen Liang. Advised by Eni Mustafaraj.
 
 This project was greatly inspired by [the Cookies Project](https://cookiesproject.streamlit.app/) made by Jessica, Nina, Crystal, and Dianna from the Wellesley Cred Lab.
