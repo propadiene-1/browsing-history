@@ -8,9 +8,9 @@ Currently adapted to host an event for [Love Data Week](https://www.icpsr.umich.
 
 This app allows you to view analytics for your browsing history, using your local browsing history file. It currently works for Google Chrome and Safari.
 
-We not store any of your data. It's stored in a temporary cache, but will clear when you do a hard refresh (Cmd/Ctrl+Shift+R). 
+We not store any of your data. It's stored in a temporary cache ([session_state](https://docs.streamlit.io/develop/api-reference/caching-and-state/st.session_state)), but will clear when you do a hard refresh (Cmd/Ctrl+Shift+R). 
 
-You can choose to send us your data for our research. If you want, you can also enter keywords to filter out; any search containing a keyword will be removed from the data we receive.
+If you want, you can also enter keywords to filter out; any search containing a keyword will be removed before the data is stored.
 
 ### Website: [browsing-history.streamlit.app](https://browsing-history.streamlit.app/)
 
