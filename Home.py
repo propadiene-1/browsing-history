@@ -96,7 +96,7 @@ def render_instructions():
     st.markdown("""##### Upload your file below!""")
 
     st.info("""
-    **NOTE:** Your file will not be sent anywhere! It is stored in the temporary streamlit cache (disappears with Cmd/Ctrl + R).
+    **NOTE:** Your file will not be sent anywhere! It is stored in streamlit's temporary cache (disappears with Cmd/Ctrl + R).
     """)
 
 st.markdown("## Welcome!")
