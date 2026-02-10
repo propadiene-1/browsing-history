@@ -22,33 +22,40 @@ def render_wordcloud(raw_data):
     
     st.markdown("### Most Common Search Words")
     st.markdown("This word cloud aggregates all the words from your search queries (anything you type into your search bar).")
-    wordlist = []
+    #wordlist = []
 
-    for search_index in query_indices:
-        row = raw_data.iloc[search_index]
-        search_title = row['title'].replace('- Google Search', '')
-        wordlist.append(search_title)
+    google_searches = raw_data[
+        raw_data['title'].str.contains('Google Search', na=False, case=False)
+    ].copy()
 
-    if len(wordlist) == 0:
-        st.info("No search queries found")
+    if google_searches.empty:
+        st.info("No searches were found in your history.")
         return
     
-    all_words = " ".join(wordlist)
-    if not all_words.strip():  # ADD THIS
+    #replace all Google Search ending
+    google_searches['query'] = google_searches['title'].str.replace('- Google Search', '', regex=False)
+    all_words = ' '.join(google_searches['query'].dropna().astype(str))
+    
+    if not all_words.strip():
         st.info("No valid words in search queries")
         return
 
-    wordcloud = WordCloud(
-        width=1000,
-        height=500,
-        background_color='white',
-        colormap='Blues_r',  # Example: use a specific color map
-        max_words=200,
-        font_path = Path(__file__).parent / "Source_Sans_3" / "SourceSans3-Regular.ttf",
-        #"/Users/propadiene/cloned-repos/browsing-history-app/pages/Source_Sans_3/SourceSans3-Regular.ttf",
-        scale=2, # Increase scale for higher resolution on save
-        random_state=16     #set random state for reproducible results
-    ).generate(all_words)
+    with st.spinner('Generating word cloud...'):
+        wordcloud = WordCloud(
+            width=1000,
+            height=500,
+            background_color='white',
+            colormap='Blues_r',  # Example: use a specific color map
+            max_words=200,
+            font_path = Path(__file__).parent / "Source_Sans_3" / "SourceSans3-Regular.ttf",
+            #"/Users/propadiene/cloned-repos/browsing-history-app/pages/Source_Sans_3/SourceSans3-Regular.ttf",
+            scale=2, # Increase scale for higher resolution on save
+            random_state=16     #set random state for reproducible results
+        ).generate(all_words)
+
+    if wordcloud is None:
+        st.info("Could not generate word cloud")
+        return
 
     #display wordcloud
     fig, ax = plt.subplots()

@@ -7,3 +7,19 @@ st.markdown("""### Why is Browsing History important?
     User identified https://www.nytimes.com/2006/08/09/technology/a-face-is-exposed-for-aol-searcher-no-4417749.html
 
 """)
+
+old wordcloud code 
+
+"""for search_index in query_indices:
+        row = raw_data.iloc[search_index]
+        search_title = row['title'].replace('- Google Search', '')
+        wordlist.append(search_title)
+
+    if len(wordlist) == 0:
+        st.info("No search queries found")
+        return
+    
+    all_words = " ".join(wordlist)
+    if not all_words.strip():  # ADD THIS
+        st.info("No valid words in search queries")
+        return"""

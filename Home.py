@@ -217,10 +217,10 @@ else:
         st.session_state.browser = browser      #checkpoint: save browser type for later
 
         if browser == "chrome":
-            print("Chrome history")
+            #print("Chrome history")
             df = load_chrome_history_db(temp_path)
         elif browser == "safari":
-            print("Safari history")
+            #print("Safari history")
             df = load_safari_history_db(temp_path)
         #elif browser == "firefox":
         #    print("Firefox")
