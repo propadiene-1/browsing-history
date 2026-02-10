@@ -50,7 +50,7 @@ def render_raw_data():
     #VIEW FILTERED BROWSING DATA
     st.markdown("View a table of all your browsing sessions below! All keyword filters have been applied.")
 
-    st.markdown("### Raw Browsing Data (Browsing Sessions)")
+    st.markdown("### Raw Data (Browsing Sessions)")
 
     render_stats_bar(raw_session_data)
     st.info("""Review your filtered data below. Each row represents a browsing session of 30 minutes or less. You can sort columns by clicking headers.""")
@@ -75,7 +75,7 @@ def render_raw_data():
 
     st.markdown("However, you can still view your data in **visits** (raw clicks) below!")
 
-    st.markdown("### Raw Visit Data (Clicks)")
+    st.markdown("### Raw Data (Clicks)")
     render_stats_bar(raw_visit_data)
     st.info("""Each row represents a **click** to a domain. You can sort columns by clicking headers.""")
     columns_order = ["domain", "title", "url", "visit_time", "visit_count"]

@@ -12,6 +12,8 @@ We not store any of your data. It's stored in a temporary cache, but will clear 
 
 You can choose to send us your data for our research. If you want, you can also enter keywords to filter out; any search containing a keyword will be removed from the data we receive.
 
+### Website: [browsinghistory.streamlit.app](https://browsinghistory.streamlit.app/)
+
 ### Quick Start
 
 1. **Clone the repo**
