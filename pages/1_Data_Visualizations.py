@@ -4,15 +4,6 @@ import altair as alt
 
 st.set_page_config(page_title = "Explore your Browsing Data", layout="wide")
 
-# ------------------
-# Download Filtering
-# ------------------
-
-#@st.dialog("Prepare Data", *, width="small", dismissible=True, icon=None, on_dismiss="ignore")
-#if st.button("Download blah blah")
-#prepare_download(session_counts)
-#def prepare_download(df): #filter df using keywords to prep for download
-
 # ----------------------------------------------
 # FUNCTIONS: PREP FOR PIE CHART: COUNTING VISITS
 # ----------------------------------------------
@@ -180,9 +171,3 @@ if 'uploaded_df' not in st.session_state:
     st.info("Upload your History file to view this page.")
 else:
     render_data()
-#def main():
-#   st.set_page_config(page_title="Explore your Data", layout="wide")
-#   st.set_page_config(page_title="Browser History Analyzer", layout="wide")
-
-#if __name__ == "__main__":
-#    main()

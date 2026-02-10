@@ -28,8 +28,13 @@ def render_stats_bar(df):
         st.write(f"**Total logged browsing sessions:**  {len(df)}") #total # history entries
     with col2:
         st.write(f"**Unique domains:** {df['domain'].nunique()}")
-    with col3:
-        st.write(f"**Timeframe:** {df['session_start'].min()} to {df['session_end'].max()}")
+    with col3:   #split into cases based on the table
+        if 'session_start' in df and 'session_end' in df:
+            st.write(f"**Timeframe:** {df['session_start'].min()} to {df['session_end'].max()}")
+        elif 'visit_time' in df:
+            st.write(f"**Timeframe:** {df['visit_time'].min()} to {df['visit_time'].max()}")
+        else:
+            return
     return
 
 def render_raw_data():
@@ -45,12 +50,40 @@ def render_raw_data():
     #VIEW FILTERED BROWSING DATA
     st.markdown("View a table of all your browsing sessions below! All keyword filters have been applied.")
 
+    st.markdown("### Raw Browsing Data (Browsing Sessions)")
+
     render_stats_bar(raw_session_data)
     st.info("""Review your filtered data below. Each row represents a browsing session of 30 minutes or less. You can sort columns by clicking headers.""")
-        
+    
+    #ADD INFO: the visit_count on the right is the # of visits within the same session.
+
     #render raw table
     render_raw_table(raw_session_data)
-    st.markdown("---")
+
+    st.markdown("""
+    **Details on how we tracked browsing sessions:**  
+
+    If you're like me, you might click on dozens of tabs within 10 to 20 minutes. 
+    Each click triggers a domain change, and your browser usually logs this as a "new visit".  
+    
+    In this table, we make some changes. Instead of logging each click, we group domains by 30-minute intervals.
+    If you click "domain 1"/"tab1" , and then click to "tab 2", and come back to "tab 1" within 30 minutes, both of clicks on "tab 1" will be part of the same "browsing session." 
+    However, if "tab 1" has not been clicked for over 30 minutes, and then you re-open it (or come back), it will start a new browsing session (a new "visit.")  
+    
+    Our goal is to approximate how often you actually visit websites, instead of how often you click between tabs.  
+    """)
+
+    st.markdown("However, you can still view your data in **visits** (raw clicks) below!")
+
+    st.markdown("### Raw Visit Data (Clicks)")
+    render_stats_bar(raw_visit_data)
+    st.info("""Each row represents a **click** to a domain. You can sort columns by clicking headers.""")
+    columns_order = ["domain", "title", "url", "visit_time", "visit_count"]
+    display_cols = [c for c in columns_order if c in raw_visit_data.columns]
+    if display_cols:
+        st.dataframe(raw_visit_data[display_cols], width='stretch', hide_index=True)
+    else:
+        st.dataframe(raw_visit_data, width='stretch', hide_index=True)
 
 st.markdown("## **View your Raw Data**")
 
