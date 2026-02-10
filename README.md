@@ -31,7 +31,7 @@ You can choose to send us your data for our research. If you want, you can also 
     ```
 4. **Follow instructions in the app for analysis**
 
-    ![Alt text](./static/screenshot.png)
+    ![Alt text](./static/upload_instructions.png)
 
 ### Fixing Errors
 1. **Command not found: streamlit**
