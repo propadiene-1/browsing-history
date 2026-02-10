@@ -79,6 +79,24 @@ def render_domain_bar_chart(session_counts, top_n=20):
     )
     st.altair_chart(chart, width='stretch')
 
+def render_stats_bar(df): #stats bar for bar chart
+    col1, col2, col3 = st.columns([0.3,0.3,0.4])
+    with col1:
+        st.write(f"**Total logged browsing sessions:**  {len(df)}") #total # history entries
+    with col2:
+        st.write(f"**Unique domains:** {df['domain'].nunique()}")
+    with col3:   #split into cases based on the table
+        if 'session_start' in df and 'session_end' in df:
+            st.write(f"**Timeframe:** {df['session_start'].min()} to {df['session_end'].max()}")
+        elif 'visit_time' in df:
+            st.write(f"**Timeframe:** {df['visit_time'].min()} to {df['visit_time'].max()}")
+        else:
+            return
+    return
+# -------------------------------------------------------------
+# FUNCTION: RENDER HEAT MAP (Most common browsing times per day)
+# -------------------------------------------------------------
+
 # --------------------------
 # Render data visualizations
 # --------------------------
@@ -86,29 +104,34 @@ def render_domain_bar_chart(session_counts, top_n=20):
 def render_data():
 
     df = pd.DataFrame()  # initialize empty df
+
+    if 'browsing_session_counts' in st.session_state:
+        aggregate_sessions_data = st.session_state.browsing_session_counts   #get data from cache
+    else:
+        st.error("browsing_session_counts is not in the session state.")
     
-    if 'raw_session_data' not in st.session_state:
-        st.error("raw session data not in cache!")
-    if 'raw_visit_data' not in st.session_state:
-        st.error("raw visit data not in cache!")
-    
-    #get data from cache
-    uploaded_df = st.session_state.uploaded_df
-    raw_session_data = st.session_state.raw_session_data
-    raw_visit_data = st.session_state.raw_visit_data
-
-    #STEP 3 VISUAL CHARTS
-
-    #st.subheader("Step 3: Visualize your Data")
-    aggregate_sessions_data = aggregate_browsing_sessions(raw_session_data) #aggregate all sessions per domain
-
     #DOWNLOAD TOP DOMAINS (CSV)
     aggregate_sessions_data.sort_values(['total_sessions'])
     top_1000_domains = aggregate_sessions_data.head(1000) #top 1000 most visited domains
     csv_data = top_1000_domains.to_csv()
 
-    #RENDER BAR CHART
-    col1, col2 = st.columns([4, 1])
+    # ---------------------
+    # RENDER BAR CHART
+    # ---------------------
+
+    aggregate_sessions_data.sort_values('total_sessions')
+
+    st.markdown("#### Top 3 Domains")
+    cols = st.columns([1,1,1])
+    for i, col in enumerate(cols):
+        with col:
+            domain = aggregate_sessions_data.iloc[i, 0]
+            st.markdown(
+                f'<p style="font-size: 32px; color: #0068c9; font-weight: 600; text-align: center;">{domain}</p>',
+                unsafe_allow_html=True
+            )#ADD8E6
+    
+    col1, col2 = st.columns([3, 1])
     with col1:
         st.markdown("#### Most Frequently Visited Domains")
     with col2: 
@@ -117,6 +140,8 @@ def render_data():
             data=csv_data,
             file_name=f"top_1000_domains.csv",
         )
+
+    render_stats_bar(raw_session_data)
 
     if len(aggregate_sessions_data) == 0:
         st.warning("There are no sessions in your browsing history to display.")
@@ -128,7 +153,10 @@ def render_data():
 
     render_domain_bar_chart(aggregate_sessions_data, top_n)
 
-    #RENDER PIE CHART
+    # ------------------
+    # RENDER PIE CHART
+    # ------------------
+
     st.markdown("#### Percentage of Highly-Visited Domains")
     col1, col2 = st.columns([1, 0.8])
     
@@ -170,4 +198,18 @@ st.markdown("## **Visualize your Browsing Data**")
 if 'uploaded_df' not in st.session_state:
     st.info("Upload your History file to view this page.")
 else:
-    render_data()
+    if 'raw_session_data' not in st.session_state:
+        st.error("raw session data not in cache!")
+    elif 'raw_visit_data' not in st.session_state:
+        st.error("raw visit data not in cache!")
+    else: 
+        #get data from cache
+        uploaded_df = st.session_state.uploaded_df
+        raw_session_data = st.session_state.raw_session_data
+        raw_visit_data = st.session_state.raw_visit_data
+
+        #aggregate the data and save to cache
+        st.session_state.browsing_session_counts = aggregate_browsing_sessions(raw_session_data)
+
+        #render visualizations
+        render_data()
