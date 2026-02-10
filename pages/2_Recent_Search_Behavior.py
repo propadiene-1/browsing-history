@@ -46,7 +46,7 @@ def render_wordcloud(raw_data):
         max_words=200,
         font_path = Path(__file__).parent / "Source_Sans_3" / "SourceSans3-Regular.ttf",
         #"/Users/propadiene/cloned-repos/browsing-history-app/pages/Source_Sans_3/SourceSans3-Regular.ttf",
-        scale=3, # Increase scale for higher resolution on save
+        scale=2, # Increase scale for higher resolution on save
         random_state=16     #set random state for reproducible results
     ).generate(all_words)
 
