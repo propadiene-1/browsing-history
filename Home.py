@@ -203,62 +203,63 @@ else:
         st.error("File too large (>500MB)")
         st.stop()
     try:  #PROCESS FILE INTO A DF
-        df = pd.DataFrame()
-        temp_path = save_uploaded_file_to_temp(uploaded_file)
-        #check it's a valid SQLite file
-        try:
-            conn = sqlite3.connect(temp_path)
-            conn.execute("SELECT 1")
-            conn.close()
-        except sqlite3.Error:
-            st.error("Invalid SQLite database file")
-            st.stop()
-        browser = detect_browser(temp_path)
-        st.session_state.browser = browser      #checkpoint: save browser type for later
+        with st.spinner('Processing your browsing history... This may take a moment.'):
+            df = pd.DataFrame()
+            temp_path = save_uploaded_file_to_temp(uploaded_file)
+            #check it's a valid SQLite file
+            try:
+                conn = sqlite3.connect(temp_path)
+                conn.execute("SELECT 1")
+                conn.close()
+            except sqlite3.Error:
+                st.error("Invalid SQLite database file")
+                st.stop()
+            browser = detect_browser(temp_path)
+            st.session_state.browser = browser      #checkpoint: save browser type for later
 
-        if browser == "chrome":
-            #print("Chrome history")
-            df = load_chrome_history_db(temp_path)
-        elif browser == "safari":
-            #print("Safari history")
-            df = load_safari_history_db(temp_path)
-        #elif browser == "firefox":
-        #    print("Firefox")
-        else:
-            print("Unknown browser history database")
-            st.error("Unknown browser history database.")
+            if browser == "chrome":
+                #print("Chrome history")
+                df = load_chrome_history_db(temp_path)
+            elif browser == "safari":
+                #print("Safari history")
+                df = load_safari_history_db(temp_path)
+            #elif browser == "firefox":
+            #    print("Firefox")
+            else:
+                print("Unknown browser history database")
+                st.error("Unknown browser history database.")
 
-        if df.empty:
-            st.error("There is no browsing data in this file.")
-            #st.stop()
-        else:
-            df = filter_data(df, st.session_state.keywords) #filter out keywords
-
-            if df.empty:    #check for empty after filtering
+            if df.empty:
                 st.error("There is no browsing data in this file.")
                 #st.stop()
             else:
-                st.session_state.uploaded_df = df    #checkpoint: store user-uploaded history in a df
+                df = filter_data(df, st.session_state.keywords) #filter out keywords
 
-                df = add_domain(df)
-                if browser == "chrome":
-                    df["visit_time"] = df["visit_time"].apply(chrome_time_to_datetime) #human-readable time
-                elif browser == "safari":
-                    df["visit_time"] = df["visit_time"].apply(safari_time_to_datetime) #human-readable time
-                #elif browser == "firefox":
-                #    df["visit_time"] = df["visit_time"].apply(firefox_time_to_datetime) #human-readable time
+                if df.empty:    #check for empty after filtering
+                    st.error("There is no browsing data in this file.")
+                    #st.stop()
                 else:
-                    print("Unknown browser, can't convert the time")
-                    st.error("Unknown browser, can't convert the time")
-                
-                st.session_state.raw_visit_data = df                  #checkpoint: save raw visit data
+                    st.session_state.uploaded_df = df    #checkpoint: store user-uploaded history in a df
+
+                    df = add_domain(df)
+                    if browser == "chrome":
+                        df["visit_time"] = df["visit_time"].apply(chrome_time_to_datetime) #human-readable time
+                    elif browser == "safari":
+                        df["visit_time"] = df["visit_time"].apply(safari_time_to_datetime) #human-readable time
+                    #elif browser == "firefox":
+                    #    df["visit_time"] = df["visit_time"].apply(firefox_time_to_datetime) #human-readable time
+                    else:
+                        print("Unknown browser, can't convert the time")
+                        st.error("Unknown browser, can't convert the time")
                     
-                df = split_sessions(df)     #record sessions > visits
-                if df.empty:  # ADD THIS
-                    st.error("No browsing sessions could be created from your data")
-                    st.stop()
-                df = add_session_length(df)
-                st.session_state.raw_session_data = df       #checkpoint: save raw data in sessions
+                    st.session_state.raw_visit_data = df                  #checkpoint: save raw visit data
+                        
+                    df = split_sessions(df)     #record sessions > visits
+                    if df.empty:  # ADD THIS
+                        st.error("No browsing sessions could be created from your data")
+                        st.stop()
+                    df = add_session_length(df)
+                    st.session_state.raw_session_data = df       #checkpoint: save raw data in sessions
 
     except Exception as e:
         st.error(f"Unable to read the file. Error: {e}")
