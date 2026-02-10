@@ -158,7 +158,7 @@ def render_domain_bar_chart(session_counts, top_n=20):
         alt.Chart(top_domains)
         .mark_bar()
         .encode(
-            x=alt.X("domain:N", sort="-y", title="Domain"),
+            x=alt.X("domain:N", sort="-y", title="Domain",axis=alt.Axis(labelLimit=250)),
             y=alt.Y("total_sessions:Q", title="Browsing Sessions"),
             tooltip=["domain", "total_sessions"],
         )
