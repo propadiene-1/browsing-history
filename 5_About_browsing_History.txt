@@ -1,0 +1,9 @@
+import streamlit as st
+
+st.markdown("""### Why is Browsing History important?
+    People are easily identifiable through their browsing histories!
+    Leakage incident https://www.cnet.com/tech/tech-industry/aol-apologizes-for-release-of-user-search-data/
+
+    User identified https://www.nytimes.com/2006/08/09/technology/a-face-is-exposed-for-aol-searcher-no-4417749.html
+
+""")

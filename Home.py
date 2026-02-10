@@ -27,45 +27,13 @@ def filter_data(df, keywords): #keywords stored as a dic
                 break
     return df.drop(dropped_indices) # drop once at end for efficiency
 
-def render_instructions():
-
-    st.markdown("""
-    ### Exclude domains
-    Before uploading your data, you can list any number of keywords in this box to exclude. Any domain, search, or url which contains the keyword will be removed. 
-    
-    We will not save your keywords anywhere.
-    """)
-
-    st.info("**IMPORTANT:** Keywords must be comma-separated (including the ending). EX: chatgpt, gemini, claude,")
-
-    user_input = st.text_area(
-        "placeholder label",
-        max_chars=None,
-        on_change=None, 
-        placeholder="Enter keywords...", 
-        disabled=False, 
-        label_visibility="collapsed", 
-        width="stretch")
-
-    if 'keywords' not in st.session_state: #save keywords into dic for this session
-        st.session_state.keywords = {}
-
-    if st.button("Save keywords"): #submit button auto-saves text box
-        if user_input:
-            items = [line.strip() for line in user_input.split(',') if line.strip()]
-            st.session_state.keywords = {i: 0 for i in items}     #store input as keywords
-            st.success(f"**SAVED KEYWORDS:** {user_input}")
-        else:
-            st.error("Please enter keywords to save.")
-
-    st.markdown("### Upload your History File to Get Started.")
-    
-    st.write("Instructions to get your History file below.")
-    st.info("**NOTE:** Check that you have closed your browser (e.g. Google Chrome) before uploading your data.")
+def render_chrome_instructions():
+    #st.info("**NOTE:** Check that you have closed your browser before uploading your data.")
+    #st.markdown("##### Instructions to upload your :blue[Google Chrome] browsing history below.")
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown("#### Windows")
+        st.markdown("##### Windows")
         st.markdown("""
 
         1. Open file explorer
@@ -74,11 +42,12 @@ def render_instructions():
 
         3. Choose either 'Default' or 'Profile 1', 'Profile 2', etc.
 
-        4. **Drag and Drop:** 'History'"""
+        4. **Drag and Drop:** 'History'
+        """
         )
 
     with col2:
-        st.markdown("#### macOS")
+        st.markdown("##### macOS")
         st.markdown("""
 
         1. Open Finder
@@ -92,16 +61,129 @@ def render_instructions():
         5. **Drag and Drop:** 'History'
         """
         )
-    
-    st.markdown("""##### Upload your file below!""")
 
-    st.info("""
-    **NOTE:** Your file will not be sent anywhere! It is stored in streamlit's temporary cache (disappears with Cmd/Ctrl + R).
-    """)
+def render_safari_instructions():
+    #st.info("**NOTE:** Check that you have closed your browser before uploading your data.")
+    #st.markdown("##### Displaying instructions for :blue[Safari]")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("##### macOS")
+        st.markdown("""
+
+        1. Open Finder
+        
+        2. Command + Shift + G
+
+        3. ~/Library/Safari/History.db
+
+        4. **Drag and Drop:** 'History.db'
+        """
+        )
+        st.text("")
+        st.text("")
+
+def render_firefox_instructions():
+    #st.info("**NOTE:** Check that you have closed your browser before uploading your data.")
+    #st.markdown("##### Displaying instructions for :blue[Mozilla Firefox]")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("##### Windows")
+        st.markdown("""
+        1. Open file explorer  
+
+        2. %APPDATA%\\Mozilla\\Firefox\\Profiles\\  
+
+        3. Select a profile folder ending in '.default' or '.default-release'  
+
+        4. **Drag and Drop:** 'places.sqlite'  
+        """
+        )
+
+    with col2:
+        st.markdown("##### macOS")
+        st.markdown("""
+
+        1. Open Finder
+
+        2. Command + Shift + G
+
+        3. ~/Library/Application Support/Firefox/Profiles/
+
+        4. Select a profile folder ending in '.default' or '.default-release'
+
+        5. **Drag and Drop:** 'places.sqlite'
+        """
+        )
 
 st.markdown("## Welcome!")
+st.markdown("""
+    This browsing history app is designed to help you visualize and explore your browsing history. You will learn about your own browsing habits, and find out what your browser knows about you.
+    
+    ### Get Started
 
-render_instructions()
+    To get started, read the instructions below for how to **upload your history file** and **filter out keywords**. (Most large browsers - Chrome, Safari, etc. - store your history on your local device in a SQLite file. You'll need to upload this local file to analyze your data.
+
+    Concerned about privacy? We don't keep any of your data (see "Privacy" for more information). 
+    """)
+
+st.markdown("""
+#### Keyword Filtering
+We know browsing history is sensitive. Before uploading your data, you can list any number of keywords in this box to exclude. Any domain, search, or url which contains the keyword will be removed. 
+We will not save your keywords anywhere.
+""")
+
+st.info("**IMPORTANT:** Keywords must be comma-separated (including the ending). EX: chatgpt, gemini, claude,")
+
+user_input = st.text_area(
+    "placeholder label",
+    max_chars=None,
+    on_change=None, 
+    placeholder="Enter keywords...", 
+    disabled=False, 
+    label_visibility="collapsed", 
+    width="stretch")
+
+if 'keywords' not in st.session_state: #save keywords into dic for this session
+    st.session_state.keywords = {}
+
+st.markdown("""
+**NOTE:** You can see the results of your filtering in the page titled "Raw Data Tables." To make changes, just edit the keywords and re-upload the file!
+""")
+
+if st.button("Save keywords"): #submit button auto-saves text box
+    if user_input:
+        items = [line.strip() for line in user_input.split(',') if line.strip()]
+        st.session_state.keywords = {i: 0 for i in items}     #store input as keywords
+        st.success(f"**Saved** ({user_input})")
+    else:
+        st.error("Please enter keywords to save.")
+
+#HEADER FOR INSTRUCTIONS (WITH BROWSER TOGGLE)
+col1, col2 = st.columns([2, 1])
+with col2:
+    instructions = {
+        "Google Chrome": render_chrome_instructions,
+        "Safari": render_safari_instructions,
+        #"Mozilla Firefox": render_firefox_instructions,
+    }
+    #default to chrome
+    if "selected_instructions" not in st.session_state:
+        st.session_state.selected_instructions = "Google Chrome"
+    choice = st.selectbox(
+        "placeholder",
+        list(instructions.keys()),
+        key="selected_instructions",
+        label_visibility="collapsed",
+    )
+with col1: 
+    st.markdown(f"#### Upload your History File: :blue[{st.session_state.selected_instructions}]")
+
+st.markdown("""Instructions for uploading your local file are below. To learn more about where your data will be stored, see the "Privacy" section.""")
+instructions[st.session_state.selected_instructions]()  #call the key that correspons to the selection
+
+st.markdown("""##### Upload your file below!""")
 
 #FILE PROCESSING
 uploaded_file = st.file_uploader(   #render the file uploader
@@ -113,23 +195,59 @@ if uploaded_file is None:
     st.warning("Please upload the file to proceed.")
 else:
     try:  #PROCESS FILE INTO A DF
+        df = pd.DataFrame()
         temp_path = save_uploaded_file_to_temp(uploaded_file)
-        df = load_chrome_history_db(temp_path)
-        df = filter_data(df, st.session_state.keywords) #filter out keywords
+        browser = detect_browser(temp_path)
+        st.session_state.browser = browser      #checkpoint: save browser type for later
 
-        if df.empty:    #check for empty after filtering
-            st.error("There is no browsing data in this file.")
+        if browser == "chrome":
+            print("Chrome history")
+            df = load_chrome_history_db(temp_path)
+        elif browser == "safari":
+            print("Safari history")
+            df = load_safari_history_db(temp_path)
+        #elif browser == "firefox":
+        #    print("Firefox")
         else:
-            st.session_state.uploaded_df = df    #checkpoint: store user-uploaded history in a df
+            print("Unknown browser history database")
+            st.error("Unknown browser history database.")
 
-            df = add_domain(df)
-            df["visit_time"] = df["visit_time"].apply(chrome_time_to_datetime) #human-readable time
-            st.session_state.raw_visit_data = df                  #checkpoint: save raw visit data
+        if df.empty:
+            st.error("There is no browsing data in this file.")
+            #st.stop()
+        else:
+            df = filter_data(df, st.session_state.keywords) #filter out keywords
+
+            if df.empty:    #check for empty after filtering
+                st.error("There is no browsing data in this file.")
+                #st.stop()
+            else:
+                st.session_state.uploaded_df = df    #checkpoint: store user-uploaded history in a df
+
+                df = add_domain(df)
+                if browser == "chrome":
+                    df["visit_time"] = df["visit_time"].apply(chrome_time_to_datetime) #human-readable time
+                elif browser == "safari":
+                    df["visit_time"] = df["visit_time"].apply(safari_time_to_datetime) #human-readable time
+                #elif browser == "firefox":
+                #    df["visit_time"] = df["visit_time"].apply(firefox_time_to_datetime) #human-readable time
+                else:
+                    print("Unknown browser, can't convert the time")
+                    st.error("Unknown browser, can't convert the time")
                 
-            df = split_sessions(df)     #record sessions > visits
-            df = add_session_length(df)
-
-            st.session_state.raw_session_data = df       #checkpoint: save raw data in sessions
+                st.session_state.raw_visit_data = df                  #checkpoint: save raw visit data
+                    
+                df = split_sessions(df)     #record sessions > visits
+                df = add_session_length(df)
+                st.session_state.raw_session_data = df       #checkpoint: save raw data in sessions
 
     except Exception as e:
         st.error(f"Unable to read the file. Error: {e}")
+
+st.markdown("""
+#### Privacy
+We don't save your data or send it anywhere. After you upload your file, it is only stored within your current **session state**.   
+When you refresh (Cmd/Ctrl + R) or close the tab (Cmd/Ctrl + W), the data will be cleared. (This is different from a [browser cache](https://pressidium.com/blog/browser-cache-work/#what-is-the-browser-cache), which you would need to clear manually.)
+
+More information about session states [here](https://docs.streamlit.io/develop/api-reference/caching-and-state/st.session_state)!
+""")
