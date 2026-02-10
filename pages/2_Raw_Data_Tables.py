@@ -53,7 +53,7 @@ def render_raw_data():
     st.markdown("### Raw Data (Browsing Sessions)")
 
     render_stats_bar(raw_session_data)
-    st.info("""Review your filtered data below. Each row represents a browsing session of 30 minutes or less. You can sort columns by clicking headers.""")
+    st.info("""Each row represents a browsing session of 30 minutes or less. You can sort columns by clicking headers.""")
     
     #ADD INFO: the visit_count on the right is the # of visits within the same session.
 
@@ -77,7 +77,7 @@ def render_raw_data():
 
     st.markdown("### Raw Data (Clicks)")
     render_stats_bar(raw_visit_data)
-    st.info("""Each row represents a **click** to a domain. You can sort columns by clicking headers.""")
+    st.info("""Each row represents a click to a domain. You can sort columns by clicking headers.""")
     columns_order = ["domain", "title", "url", "visit_time", "visit_count"]
     display_cols = [c for c in columns_order if c in raw_visit_data.columns]
     if display_cols:
