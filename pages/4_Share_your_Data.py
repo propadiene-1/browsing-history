@@ -1,14 +1,24 @@
 import streamlit as st
+import pandas as pd
 
 st.set_page_config(page_title="Share your Data", layout="wide")
 
 st.markdown("## **Share your Data**")
 st.markdown("""
-This part is completely OPTIONAL. If you found the app helpful, you have the option to share your history with us and improve our research.
+This part is completely optional. Our lab would like to continue working with browsing history and understanding the kind of information that is stored in search browsers.
+If you found the app helpful, you have the option to share your history with us and improve our research.
 
-Feel free to review your raw data and add more keywords! If you wish to add more keywords, just edit the keyword box and re-upload your data.
+To share your data, download a CSV of your history using the button below, and then upload it to this Google Form:
 
-If you did not upload your file in the "Home" page, nothing will be sent to us.
+[**Upload your data here**](https://forms.gle/kb2rbJTU8ScxuSYr8)
+
+The form is completely anonymous.
 """)
 
-st.button("Send your Data")
+print(st.session_state.raw_visit_data)
+
+st.download_button(     #download button (csv)
+    label="Download your Data",
+    data=st.session_state.raw_visit_data.to_csv(index=False).encode("utf-8"),
+    file_name=f"visits_csv",
+)

@@ -42,12 +42,12 @@ def load_chrome_history_db(db_path):
         SELECT
             urls.url,
             urls.title,
-            visits.visit_time,
-            urls.visit_count
+            visits.visit_time
         FROM urls
         JOIN visits ON urls.id = visits.url
         ORDER BY visits.visit_time
     """ #join urls by visit based on id and sort
+    #urls.visit_count
     df = pd.read_sql_query(query, conn)
     conn.close()
     return df
@@ -79,19 +79,20 @@ def load_safari_history_db(db_path):
         FROM history_visits AS visits
         JOIN history_items AS items
             ON visits.history_item = items.id
-        JOIN(
-            SELECT 
-                history_item,
-                COUNT(*) as visit_count
-            FROM history_visits
-            GROUP BY history_item
-        ) AS counts
-            ON counts.history_item = items.id
         ORDER BY visits.visit_time
     """ #join urls by visit based on id and sort
     df = pd.read_sql_query(query, conn)
     conn.close()
     return df
+
+#JOIN(
+#   SELECT 
+#       history_item,
+#        COUNT(*) as visit_count
+#        FROM history_visits
+#        GROUP BY history_item
+#        ) AS counts
+#        ON counts.history_item = items.id
 
 #load SQLite db from firefox to pandas df (chrome format)
 def load_firefox_history_db(db_path):
@@ -101,11 +102,11 @@ def load_firefox_history_db(db_path):
             places.url,
             places.title,
             visits.visit_date AS visit_time,
-            places.visit_count
         FROM moz_places AS places
         JOIN moz_historyvisits AS visits ON visits.place_id = places.id
         ORDER BY visits.visit_time
     """, conn)
+    #places.visit_count
     conn.close()
     return df
 # -------------------------------

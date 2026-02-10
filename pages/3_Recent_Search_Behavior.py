@@ -21,6 +21,7 @@ def render_wordcloud(raw_data):
         return
     
     st.markdown("### Most Common Search Words")
+    st.markdown("This word cloud aggregates all the words from your search queries (anything you type into your search bar).")
     wordlist = []
 
     for search_index in query_indices:
@@ -50,7 +51,7 @@ def render_wordcloud(raw_data):
 
     return
 
-#shows 5 searches after a query
+#shows 10 searches after a query
 def render_query_table(raw_data, limit=30):
     raw_data = raw_data.sort_values(by='visit_time').reset_index(drop=True)
     query_indices = raw_data[raw_data['title'].str.contains('Google Search', na=False)].index #mask with google search
@@ -67,7 +68,7 @@ def render_query_table(raw_data, limit=30):
     for search_index in recent_searches:
         row = raw_data.iloc[search_index] #look up query in full data table
         search_title = row['title'].replace('- Google Search', '')
-        search_results = raw_data.iloc[search_index+1 : search_index+6][['visit_time', 'domain', 'url', 'title']]
+        search_results = raw_data.iloc[search_index+1 : search_index+11][['visit_time', 'domain', 'url', 'title']]
         
         with st.expander(f"{search_title} | {row['visit_time']}"): #display in streamlit
             st.dataframe(search_results, hide_index=True, width='stretch')

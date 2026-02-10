@@ -4,6 +4,99 @@ import altair as alt
 
 st.set_page_config(page_title = "Explore your Browsing Data", layout="wide")
 
+# HEATMAP
+
+def create_hourly_heatmap():
+    """
+    Create a heatmap showing visits by hour of day and date
+    """
+    # Check if data exists
+    if 'raw_visit_data' not in st.session_state:
+        st.warning("Please upload your browsing history first!")
+        return
+    
+    df = st.session_state.raw_visit_data.copy()
+    
+    if df.empty:
+        st.warning("No visit data available.")
+        return
+    
+    # Step 1: Extract hour and date from each visit
+    df['hour'] = df['visit_time'].dt.hour  # Gets 0-23
+    df['date'] = df['visit_time'].dt.date   # Gets just the date (no time)
+    
+    # Step 2: Count how many visits happened at each hour on each date
+    # This groups all visits by date AND hour, then counts them
+    # Example: 5 visits on 2024-01-15 at 14:00 becomes one row with count=5
+    heatmap_data = df.groupby(['date', 'hour']).size().reset_index(name='visit_count')
+    
+    # Step 3: Fill in missing hours with 0 visits
+    # If you didn't visit anything at 3am on a certain day, we still want to show 0
+    all_dates = pd.DataFrame({'date': df['date'].unique()})  # All unique dates
+    all_hours = pd.DataFrame({'hour': range(24)})             # 0 through 23
+    all_combinations = all_dates.merge(all_hours, how='cross')  # Every date × every hour
+    
+    # Merge with actual data, fill missing with 0
+    heatmap_data = all_combinations.merge(
+        heatmap_data, 
+        on=['date', 'hour'], 
+        how='left'
+    ).fillna(0)
+    
+    # Step 4: Format date as string for display
+    heatmap_data['date_str'] = pd.to_datetime(heatmap_data['date']).dt.strftime('%Y-%m-%d')
+    
+    # Step 5: Create the heatmap visualization
+    chart = alt.Chart(heatmap_data).mark_rect().encode(
+        # X-axis: dates across the bottom
+        x=alt.X('date_str:N', title='Date', axis=alt.Axis(labelAngle=-45)),
+        
+        # Y-axis: hours down the side (midnight at top, 11pm at bottom)
+        y=alt.Y('hour:O', 
+                title='Hour of Day',
+                sort='descending',  # Makes 0 (midnight) appear at top
+                axis=alt.Axis(
+                    labelExpr='datum.value + ":00"',  # Shows "14:00" instead of "14"
+                    labelAngle=0
+                )),
+        
+        # Color: darker blue = more visits
+        color=alt.Color(
+            'visit_count:Q',
+            title='Visits',
+            scale=alt.Scale(scheme='blues')
+        ),
+        
+        # Tooltip: what you see when you hover
+        tooltip=[
+            alt.Tooltip('date_str:N', title='Date'),
+            alt.Tooltip('hour:O', title='Hour'),
+            alt.Tooltip('visit_count:Q', title='Visits')
+        ]
+    ).properties(
+        width=800,
+        height=600,
+        title='Browsing Activity Heatmap by Hour'
+    )
+    
+    st.altair_chart(chart, use_container_width=True)
+    
+    # Summary statistics
+    st.markdown("### Activity Summary")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        busiest_hour = df['hour'].mode()[0] if not df.empty else 0
+        st.metric("Most Active Hour", f"{busiest_hour:00d}:00")
+    
+    with col2:
+        total_visits = len(df)
+        st.metric("Total Visits", f"{total_visits:,}")
+    
+    with col3:
+        avg_per_hour = df.groupby('hour').size().mean()
+        st.metric("Avg Visits/Hour", f"{avg_per_hour:.1f}")
+
 # ----------------------------------------------
 # FUNCTIONS: PREP FOR PIE CHART: COUNTING VISITS
 # ----------------------------------------------
@@ -213,3 +306,7 @@ else:
 
         #render visualizations
         render_data()
+
+        # Call this function in your Streamlit page
+        st.markdown("### Browsing Activity Heatmap")
+        create_hourly_heatmap()
